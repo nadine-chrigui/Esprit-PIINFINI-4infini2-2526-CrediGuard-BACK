@@ -1,4 +1,4 @@
-package tn.esprit.pi_back.Controllers;
+package tn.esprit.pi_back.controllers;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -7,11 +7,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import tn.esprit.pi_back.Dto.AuthRequest;
-import tn.esprit.pi_back.Dto.AuthResponse;
-import tn.esprit.pi_back.Entities.User;
-import tn.esprit.pi_back.Repositories.UserRepository;
-import tn.esprit.pi_back.Security.JwtService;
+import tn.esprit.pi_back.dto.AuthRequest;
+import tn.esprit.pi_back.dto.AuthResponse;
+import tn.esprit.pi_back.entities.User;
+import tn.esprit.pi_back.repositories.UserRepository;
+import tn.esprit.pi_back.security.JwtService;
 
 
 

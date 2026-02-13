@@ -1,4 +1,4 @@
-package tn.esprit.pi_back.Security;
+package tn.esprit.pi_back.security;
 
 
 import io.jsonwebtoken.*;

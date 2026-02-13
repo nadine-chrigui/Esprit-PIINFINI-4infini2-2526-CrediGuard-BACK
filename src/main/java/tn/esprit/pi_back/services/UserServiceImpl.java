@@ -1,11 +1,11 @@
-package tn.esprit.pi_back.Services;
+package tn.esprit.pi_back.services;
 
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import tn.esprit.pi_back.Entities.User;
-import tn.esprit.pi_back.Repositories.UserRepository;
+import tn.esprit.pi_back.entities.User;
+import tn.esprit.pi_back.repositories.UserRepository;
 
 import java.util.List;
 

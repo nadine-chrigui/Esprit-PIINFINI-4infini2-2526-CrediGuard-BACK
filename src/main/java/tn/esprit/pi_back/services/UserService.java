@@ -1,6 +1,6 @@
-package tn.esprit.pi_back.Services;
+package tn.esprit.pi_back.services;
 
-import tn.esprit.pi_back.Entities.User;
+import tn.esprit.pi_back.entities.User;
 
 import java.util.List;
 

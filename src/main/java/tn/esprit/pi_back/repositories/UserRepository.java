@@ -1,8 +1,8 @@
-package tn.esprit.pi_back.Repositories;
+package tn.esprit.pi_back.repositories;
 
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import tn.esprit.pi_back.Entities.User;
+import tn.esprit.pi_back.entities.User;
 
 import java.util.Optional;
 

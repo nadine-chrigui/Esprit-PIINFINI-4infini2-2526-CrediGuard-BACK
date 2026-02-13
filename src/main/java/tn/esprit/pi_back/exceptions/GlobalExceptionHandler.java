@@ -1,4 +1,4 @@
-package tn.esprit.pi_back.Exceptions;
+package tn.esprit.pi_back.exceptions;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;

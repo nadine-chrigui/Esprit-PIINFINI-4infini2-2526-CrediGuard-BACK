@@ -1,11 +1,11 @@
-package tn.esprit.pi_back.Controllers;
+package tn.esprit.pi_back.controllers;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import tn.esprit.pi_back.Entities.User;
-import tn.esprit.pi_back.Services.UserService;
+import tn.esprit.pi_back.entities.User;
+import tn.esprit.pi_back.services.UserService;
 
 import java.util.List;
 

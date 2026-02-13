@@ -1,4 +1,4 @@
-package tn.esprit.pi_back.Dto;
+package tn.esprit.pi_back.dto;
 
 import lombok.Data;
 @Data

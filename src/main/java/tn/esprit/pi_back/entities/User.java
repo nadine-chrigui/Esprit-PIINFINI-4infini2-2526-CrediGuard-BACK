@@ -1,4 +1,4 @@
-package tn.esprit.pi_back.Entities;
+package tn.esprit.pi_back.entities;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
@@ -7,7 +7,7 @@ import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import tn.esprit.pi_back.Entities.Enums.UserType;
+import tn.esprit.pi_back.entities.Enums.UserType;
 
 import java.time.LocalDateTime;
 import java.util.Collection;

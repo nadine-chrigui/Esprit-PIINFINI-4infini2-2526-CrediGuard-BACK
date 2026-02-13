@@ -1,11 +1,11 @@
-package tn.esprit.pi_back.Security;
+package tn.esprit.pi_back.security;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import tn.esprit.pi_back.Repositories.UserRepository;
+import tn.esprit.pi_back.repositories.UserRepository;
 
 @Service
 @RequiredArgsConstructor
