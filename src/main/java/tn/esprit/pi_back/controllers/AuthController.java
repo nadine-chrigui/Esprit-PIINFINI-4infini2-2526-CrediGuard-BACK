@@ -35,12 +35,17 @@ import tn.esprit.pi_back.security.JwtService;
 
         @PostMapping("/login")
         public AuthResponse login(@RequestBody AuthRequest request) {
-            Authentication auth = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getPassword()
+                    )
             );
 
             String token = jwtService.generateToken(request.getEmail());
             return new AuthResponse(token);
         }
+
     }
 

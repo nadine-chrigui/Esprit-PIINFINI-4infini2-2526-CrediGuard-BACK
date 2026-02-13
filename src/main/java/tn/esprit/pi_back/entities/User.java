@@ -7,7 +7,7 @@ import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import tn.esprit.pi_back.entities.Enums.UserType;
+import tn.esprit.pi_back.entities.enums.UserType;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
