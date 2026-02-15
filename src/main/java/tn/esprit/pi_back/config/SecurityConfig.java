@@ -31,6 +31,9 @@ public class SecurityConfig {
                         // ✅ Rôles activés
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
                         .requestMatchers("/api/projects/**").hasAnyRole("ADMIN", "PARTNER")
+                        .requestMatchers("/api/cart/**").permitAll()
+                        .requestMatchers("/api/products/**").permitAll()
+                        .requestMatchers("/api/categories/**").permitAll()
                         .anyRequest().permitAll()
 
 
