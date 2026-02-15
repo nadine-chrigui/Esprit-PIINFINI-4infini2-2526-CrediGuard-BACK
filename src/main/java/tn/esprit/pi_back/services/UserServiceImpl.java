@@ -1,8 +1,11 @@
 package tn.esprit.pi_back.services;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import tn.esprit.pi_back.entities.User;
+import tn.esprit.pi_back.entities.enums.UserType;
 import tn.esprit.pi_back.repositories.UserRepository;
 
 import java.util.List;
@@ -63,4 +66,49 @@ public class UserServiceImpl implements UserService {
         User existing = getById(id);
         userRepository.delete(existing);
     }
+    @Override
+    public User getOrCreateCurrentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        String email;
+        String fullName;
+
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            email = "test@test.tn";
+            fullName = "Test User";
+        } else {
+            email = auth.getName();
+            fullName = auth.getName();
+        }
+
+        return userRepository.findByEmail(email)
+                .orElseGet(() -> {
+                    User u = new User();
+                    u.setEmail(email);
+                    u.setFullName(fullName);
+                    u.setUserType(UserType.CLIENT);  // ✅ adapte au bon enum
+                    u.setPassword(passwordEncoder.encode("12345678"));
+                    u.setEnabled(true); // si tu as ce champ
+                    return userRepository.save(u);
+                });
+    }
+
+    @Override
+    public User getCurrentUserOrThrow() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        // ✅ DEV fallback READ-ONLY (aucun insert ici)
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            return userRepository.findByEmail("test@test.tn")
+                    .orElseThrow(() -> new SecurityException(
+                            "Unauthorized: no authenticated user. Create the test user first by calling POST /api/products once (or login)."
+                    ));
+        }
+
+        String email = auth.getName();
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new SecurityException("Unauthorized: user not found in DB"));
+    }
+
+
 }

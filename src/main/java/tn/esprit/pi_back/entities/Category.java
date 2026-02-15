@@ -40,7 +40,7 @@ public class Category {
 
     // 0..* children
     @JsonIgnore // évite boucle JSON (parent -> children -> parent ...)
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = false)
+    @OneToMany(mappedBy = "parent", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private List<Category> children = new ArrayList<>();
 
     @Column(nullable = false, updatable = false)

@@ -17,6 +17,7 @@ import java.util.List;
 @AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(exclude = {"user", "items"})
+@Table(name = "orders")
 public class Order {
 
     @Id
