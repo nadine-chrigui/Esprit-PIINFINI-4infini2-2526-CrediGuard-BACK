@@ -1,7 +1,6 @@
 package tn.esprit.pi_back.controllers;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -17,7 +16,6 @@ import tn.esprit.pi_back.security.JwtService;
 
     @RestController
     @RequestMapping("/api/auth")
-    @RequiredArgsConstructor
     @CrossOrigin("*")
     public class AuthController {
 
@@ -25,6 +23,16 @@ import tn.esprit.pi_back.security.JwtService;
         private final PasswordEncoder passwordEncoder;
         private final AuthenticationManager authenticationManager;
         private final JwtService jwtService;
+
+        public AuthController(UserRepository userRepository,
+                              PasswordEncoder passwordEncoder,
+                              AuthenticationManager authenticationManager,
+                              JwtService jwtService) {
+            this.userRepository = userRepository;
+            this.passwordEncoder = passwordEncoder;
+            this.authenticationManager = authenticationManager;
+            this.jwtService = jwtService;
+        }
 
         @PostMapping("/register")
         public User register(@Valid @RequestBody User user)
