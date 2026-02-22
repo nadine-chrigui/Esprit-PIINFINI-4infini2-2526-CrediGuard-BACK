@@ -31,6 +31,7 @@ public class InsurancePolicy {
     private InsuranceCompany insuranceCompany;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "beneficiary_id", nullable = false)
-    private Beneficiary beneficiary;
+    @JoinColumn(name = "client_id", nullable = false)
+    private User client;
+
 }
