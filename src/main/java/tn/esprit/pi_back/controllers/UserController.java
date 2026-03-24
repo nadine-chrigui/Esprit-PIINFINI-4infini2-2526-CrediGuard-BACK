@@ -3,6 +3,9 @@ package tn.esprit.pi_back.controllers;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import tn.esprit.pi_back.dto.ProfileResponse;
+import tn.esprit.pi_back.dto.UpdateProfileRequest;
+import tn.esprit.pi_back.dto.UpdateUserRequest;
 import tn.esprit.pi_back.entities.User;
 import tn.esprit.pi_back.services.UserService;
 
@@ -26,12 +29,10 @@ public class UserController
         return ResponseEntity.ok(userService.create(user));
     }
 
-    // UPDATE
     @PutMapping("/{id}")
-    public ResponseEntity<User> update(@Valid @PathVariable Long id, @RequestBody User user) {
-        return ResponseEntity.ok(userService.update(id, user));
+    public ResponseEntity<User> update(@PathVariable Long id, @Valid @RequestBody UpdateUserRequest request) {
+        return ResponseEntity.ok(userService.update(id, request));
     }
-
     // GET BY ID
     @GetMapping("/{id}")
     public ResponseEntity<User> getById(@PathVariable Long id) {
@@ -50,4 +51,14 @@ public class UserController
         userService.delete(id);
         return ResponseEntity.noContent().build();
     }
+    @GetMapping("/me")
+    public ResponseEntity<ProfileResponse> getMyProfile() {
+        return ResponseEntity.ok(userService.getMyProfile());
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<ProfileResponse> updateMyProfile(@Valid @RequestBody UpdateProfileRequest request) {
+        return ResponseEntity.ok(userService.updateMyProfile(request));
+    }
+
 }

@@ -60,13 +60,15 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public List<ProductResponse> getAll() {
-        return productRepository.findAll().stream().map(this::toResponse).toList();
+        return productRepository.findByActiveTrue()
+                .stream()
+                .map(this::toResponse)
+                .toList();
     }
-
     @Override
     @Transactional(readOnly = true)
     public ProductResponse getById(Long id) {
-        Product p = productRepository.findById(id)
+        Product p = productRepository.findByIdAndActiveTrue(id)
                 .orElseThrow(() -> new IllegalArgumentException("Product not found: " + id));
         return toResponse(p);
     }
@@ -75,14 +77,14 @@ public class ProductServiceImpl implements ProductService {
     @Transactional(readOnly = true)
     public List<ProductResponse> getMine() {
         User me = userService.getOrCreateCurrentUser();
-        return productRepository.findBySellerId(me.getId()).stream().map(this::toResponse).toList();
+        return productRepository.findBySellerIdAndActiveTrue(me.getId()).stream().map(this::toResponse).toList();
     }
 
     @Override
     public ProductResponse update(Long id, ProductUpdateRequest req) {
         User me = userService.getOrCreateCurrentUser();
 
-        Product p = productRepository.findById(id)
+        Product p = productRepository.findByIdAndActiveTrue(id)
                 .orElseThrow(() -> new IllegalArgumentException("Product not found: " + id));
 
         if (!p.getSeller().getId().equals(me.getId())) {
@@ -121,22 +123,24 @@ public class ProductServiceImpl implements ProductService {
 
         if (req.active() != null) p.setActive(req.active());
 
-        return toResponse(p);
+        Product saved = productRepository.save(p);
+        return toResponse(saved);
     }
 
     @Override
     public void delete(Long id) {
         User me = userService.getOrCreateCurrentUser();
 
-        Product p = productRepository.findById(id)
+        Product p = productRepository.findByIdAndActiveTrue(id)
                 .orElseThrow(() -> new IllegalArgumentException("Product not found: " + id));
 
         if (!p.getSeller().getId().equals(me.getId())) {
             throw new SecurityException("Forbidden: you are not the owner of this product.");
         }
 
-        // soft delete recommandé
+
         p.setActive(false);
+        productRepository.save(p);
     }
 
     private ProductResponse toResponse(Product p) {
