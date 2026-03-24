@@ -6,6 +6,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import tn.esprit.pi_back.dto.ProfileResponse;
+import tn.esprit.pi_back.dto.UpdateProfileRequest;
+import tn.esprit.pi_back.dto.UpdateUserRequest;
 import tn.esprit.pi_back.entities.User;
 import tn.esprit.pi_back.entities.enums.UserType;
 import tn.esprit.pi_back.repositories.UserRepository;
@@ -30,19 +33,26 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User update(Long id, User user) {
+    public User update(Long id, UpdateUserRequest request) {
         User existing = getById(id);
 
-        existing.setFullName(user.getFullName());
-        existing.setEmail(user.getEmail());
-        existing.setPhone(user.getPhone());
-        existing.setUserType(user.getUserType());
-        existing.setEnabled(user.isEnabled());
+        userRepository.findByEmail(request.getEmail()).ifPresent(found -> {
+            if (!found.getId().equals(id)) {
+                throw new RuntimeException("Email already exists: " + request.getEmail());
+            }
+        });
 
+        existing.setFullName(request.getFullName());
+        existing.setEmail(request.getEmail());
+        existing.setPhone(request.getPhone());
+        existing.setUserType(request.getUserType());
+        existing.setEnabled(request.getEnabled());
 
-        // ✅ si l'utilisateur a fourni un nouveau password, on le hash
-        if (user.getPassword() != null && !user.getPassword().isBlank()) {
-            existing.setPassword(passwordEncoder.encode(user.getPassword()));
+        if (request.getPassword() != null && !request.getPassword().isBlank()) {
+            if (request.getPassword().length() < 6) {
+                throw new RuntimeException("Password must be at least 6 characters");
+            }
+            existing.setPassword(passwordEncoder.encode(request.getPassword()));
         }
 
         return userRepository.save(existing);
@@ -107,6 +117,44 @@ public class UserServiceImpl implements UserService {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new SecurityException("Unauthorized: user not found in DB"));
     }
+    @Override
+    public ProfileResponse getMyProfile() {
+        User user = getCurrentUserOrThrow();
 
+        return new ProfileResponse(
+                user.getId(),
+                user.getFullName(),
+                user.getEmail(),
+                user.getPhone(),
+                user.getUserType(),
+                user.isEnabled()
+        );
+    }
+
+    @Override
+    public ProfileResponse updateMyProfile(UpdateProfileRequest request) {
+        User user = getCurrentUserOrThrow();
+
+        userRepository.findByEmail(request.getEmail()).ifPresent(found -> {
+            if (!found.getId().equals(user.getId())) {
+                throw new RuntimeException("Email already exists: " + request.getEmail());
+            }
+        });
+
+        user.setFullName(request.getFullName());
+        user.setEmail(request.getEmail());
+        user.setPhone(request.getPhone());
+
+        User saved = userRepository.save(user);
+
+        return new ProfileResponse(
+                saved.getId(),
+                saved.getFullName(),
+                saved.getEmail(),
+                saved.getPhone(),
+                saved.getUserType(),
+                saved.isEnabled()
+        );
+    }
 
 }
