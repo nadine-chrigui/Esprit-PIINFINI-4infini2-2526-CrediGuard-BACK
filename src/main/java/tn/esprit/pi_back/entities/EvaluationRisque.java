@@ -13,8 +13,8 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
-@EqualsAndHashCode
+@ToString(exclude = {"demandeCredit"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class EvaluationRisque {
 
     @Id

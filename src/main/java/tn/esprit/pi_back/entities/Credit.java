@@ -14,8 +14,8 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
-@EqualsAndHashCode
+@ToString(exclude = {"client", "demandeCredit", "remboursements"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Credit {
 
     @Id

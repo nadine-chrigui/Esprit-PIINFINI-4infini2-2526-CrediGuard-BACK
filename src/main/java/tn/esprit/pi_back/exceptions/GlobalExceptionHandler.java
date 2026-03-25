@@ -1,6 +1,5 @@
 package tn.esprit.pi_back.exceptions;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -25,12 +24,5 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Map<String, String>> handleRuntime(RuntimeException ex) {
         return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
-    }
-    @ExceptionHandler(SecurityException.class)
-    public ResponseEntity<Map<String, Object>> forbidden(SecurityException ex) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
-                "error", "FORBIDDEN",
-                "message", ex.getMessage()
-        ));
     }
 }
