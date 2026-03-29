@@ -67,6 +67,7 @@ import java.time.LocalDateTime;
                     true,
                     null,
                     "OTP sent to your email",
+                    user.getId(),
                     user.getEmail(),
                     user.getUserType().name()
             );
@@ -78,6 +79,7 @@ import java.time.LocalDateTime;
                 false,
                 token,
                 "Login successful",
+                user.getId(),
                 user.getEmail(),
                 user.getUserType().name() // 🔥 IMPORTANT
         );

@@ -4,10 +4,13 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import tn.esprit.pi_back.dto.ClientOptionDTO;
 import tn.esprit.pi_back.dto.ProfileResponse;
 import tn.esprit.pi_back.dto.UpdateProfileRequest;
 import tn.esprit.pi_back.dto.UpdateUserRequest;
 import tn.esprit.pi_back.entities.User;
+import tn.esprit.pi_back.entities.enums.UserType;
+import tn.esprit.pi_back.repositories.UserRepository;
 import tn.esprit.pi_back.services.UserService;
 
 import java.util.List;
@@ -21,6 +24,7 @@ public class UserController
 {
     private final UserService userService;
 
+    private final UserRepository userRepository;
     // CREATE
     @PostMapping
     public ResponseEntity<User> create( @Valid @RequestBody User user) {
@@ -57,6 +61,17 @@ public class UserController
     @PutMapping("/me")
     public ResponseEntity<ProfileResponse> updateMyProfile(@Valid @RequestBody UpdateProfileRequest request) {
         return ResponseEntity.ok(userService.updateMyProfile(request));
+    }
+    @GetMapping("/clients")
+    public List<ClientOptionDTO> getClients() {
+        return userRepository.findByUserType(UserType.CLIENT)
+                .stream()
+                .map(user -> new ClientOptionDTO(
+                        user.getId(),
+                        user.getFullName(),
+                        user.getEmail()
+                ))
+                .toList();
     }
 
 }

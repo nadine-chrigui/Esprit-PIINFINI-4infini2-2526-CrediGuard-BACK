@@ -2,8 +2,8 @@ package tn.esprit.pi_back.controllers;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
 import tn.esprit.pi_back.dto.demande.DemandeCreditRequestDTO;
 import tn.esprit.pi_back.dto.demande.DemandeCreditResponseDTO;
 import tn.esprit.pi_back.entities.enums.StatutDemande;
@@ -12,28 +12,26 @@ import tn.esprit.pi_back.services.DemandeCreditService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/demandes")
+@RequestMapping("/demandes")
 @RequiredArgsConstructor
 public class DemandeCreditController {
 
     private final DemandeCreditService service;
 
-    // CREATE
     @PostMapping
     public DemandeCreditResponseDTO create(
-            @RequestParam Long clientId,
+            Authentication authentication,
             @Valid @RequestBody DemandeCreditRequestDTO dto
     ) {
-        return service.create(clientId, dto);
+        String email = authentication.getName();
+        return service.create(email, dto);
     }
 
-    // READ one
     @GetMapping("/{id}")
     public DemandeCreditResponseDTO getById(@PathVariable Long id) {
         return service.getById(id);
     }
 
-    // READ list + filters
     @GetMapping
     public List<DemandeCreditResponseDTO> getAll(
             @RequestParam(required = false) Long clientId,
@@ -42,7 +40,6 @@ public class DemandeCreditController {
         return service.getAll(clientId, statut);
     }
 
-    // UPDATE
     @PutMapping("/{id}")
     public DemandeCreditResponseDTO update(
             @PathVariable Long id,
@@ -51,13 +48,11 @@ public class DemandeCreditController {
         return service.update(id, dto);
     }
 
-    // DELETE
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         service.delete(id);
     }
 
-    // PATCH status (workflow)
     @PatchMapping("/{id}/status")
     public DemandeCreditResponseDTO setStatus(
             @PathVariable Long id,

@@ -10,7 +10,7 @@ import tn.esprit.pi_back.services.CreditService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/credits")
+@RequestMapping("/credits")
 @RequiredArgsConstructor
 public class CreditController {
 
@@ -56,5 +56,9 @@ public class CreditController {
             @RequestParam StatutCredit statut
     ) {
         return service.changeStatus(id, statut);
+    }
+    @GetMapping("/by-demande")
+    public CreditResponseDTO getByDemande(@RequestParam Long demandeId) {
+        return service.getByDemande(demandeId);
     }
 }

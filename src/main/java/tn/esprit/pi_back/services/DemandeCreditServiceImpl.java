@@ -26,9 +26,9 @@ public class DemandeCreditServiceImpl implements DemandeCreditService {
     private final UserRepository userRepo;
 
     @Override
-    public DemandeCreditResponseDTO create(Long clientId, DemandeCreditRequestDTO dto) {
-        User client = userRepo.findById(clientId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + clientId));
+    public DemandeCreditResponseDTO create(String email, DemandeCreditRequestDTO dto) {
+        User client = userRepo.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + email));
 
         DemandeCredit d = new DemandeCredit();
         d.setClient(client);
@@ -36,17 +36,12 @@ public class DemandeCreditServiceImpl implements DemandeCreditService {
         d.setMontantDemande(dto.montantDemande());
         d.setDureeMois(dto.dureeMois());
         d.setObjetCredit(dto.objetCredit());
-
-        // statut initial d'après ton enum
         d.setStatut(StatutDemande.SOUMISE);
-
-        // reference unique (backend)
         d.setReference(generateUniqueReference());
 
         DemandeCredit saved = demandeRepo.save(d);
         return toDTO(saved);
     }
-
     @Override
     @Transactional(readOnly = true)
     public DemandeCreditResponseDTO getById(Long id) {
@@ -138,6 +133,7 @@ public class DemandeCreditServiceImpl implements DemandeCreditService {
     private DemandeCreditResponseDTO toDTO(DemandeCredit d) {
         Long voucherId = (d.getVoucher() != null) ? d.getVoucher().getId() : null;
         Long clientId = (d.getClient() != null) ? d.getClient().getId() : null;
+        String clientName = (d.getClient() != null) ? d.getClient().getFullName() : null;
 
         return new DemandeCreditResponseDTO(
                 d.getId(),
@@ -149,6 +145,7 @@ public class DemandeCreditServiceImpl implements DemandeCreditService {
                 d.getStatut(),
                 d.getDateCreation(),
                 clientId,
+                clientName,
                 voucherId,
                 d.getCreatedAt(),
                 d.getUpdatedAt()

@@ -7,7 +7,7 @@ import tn.esprit.pi_back.dto.decision.*;
 import tn.esprit.pi_back.services.DecisionCreditService;
 
 @RestController
-@RequestMapping("/api/decisions")
+@RequestMapping("/decisions")
 @RequiredArgsConstructor
 public class DecisionCreditController {
 

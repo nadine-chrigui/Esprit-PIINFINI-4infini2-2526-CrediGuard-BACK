@@ -17,6 +17,6 @@ public interface CreditService {
     CreditResponseDTO update(Long id, CreditRequestDTO dto);
 
     void delete(Long id);
-
+    CreditResponseDTO getByDemande(Long demandeId);
     CreditResponseDTO changeStatus(Long id, StatutCredit statut);
 }

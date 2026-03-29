@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface DemandeCreditService {
 
-    DemandeCreditResponseDTO create(Long clientId, DemandeCreditRequestDTO dto);
+    DemandeCreditResponseDTO create(String email, DemandeCreditRequestDTO dto);
 
     DemandeCreditResponseDTO getById(Long id);
 
@@ -18,6 +18,5 @@ public interface DemandeCreditService {
 
     void delete(Long id);
 
-    // transitions (workflow)
     DemandeCreditResponseDTO setStatus(Long id, StatutDemande statut);
 }

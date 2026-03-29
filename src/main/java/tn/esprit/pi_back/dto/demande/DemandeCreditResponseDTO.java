@@ -16,6 +16,7 @@ public record DemandeCreditResponseDTO(
         StatutDemande statut,
         LocalDateTime dateCreation,
         Long clientId,
+        String clientName,
         Long voucherId,
         LocalDateTime createdAt,
         LocalDateTime updatedAt

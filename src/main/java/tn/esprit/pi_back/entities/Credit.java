@@ -63,7 +63,7 @@ public class Credit {
     private User client;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "demande_credit_id", nullable = false)
+    @JoinColumn(name = "demande_credit_id", nullable = false, unique = true)
     private DemandeCredit demandeCredit;
 
     @OneToMany(mappedBy = "credit", cascade = CascadeType.ALL, orphanRemoval = true)

@@ -9,6 +9,8 @@ import tn.esprit.pi_back.entities.enums.StatutDemande;
 import tn.esprit.pi_back.exceptions.ResourceNotFoundException;
 import tn.esprit.pi_back.repositories.*;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -85,5 +87,14 @@ public class PlanUtilisationServiceImpl implements PlanUtilisationService {
                 p.getNatureActivite(),
                 p.getDemandeCredit().getId()
         );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PlanUtilisationResponseDTO> getMine(Long clientId) {
+        return planRepo.findAllByDemandeCreditClientId(clientId)
+                .stream()
+                .map(this::toDTO)
+                .toList();
     }
 }

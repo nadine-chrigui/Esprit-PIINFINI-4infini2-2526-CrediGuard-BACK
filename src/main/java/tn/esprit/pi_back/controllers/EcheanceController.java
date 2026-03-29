@@ -9,7 +9,7 @@ import tn.esprit.pi_back.services.EcheanceService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/echeances")
+@RequestMapping("/echeances")
 @RequiredArgsConstructor
 public class EcheanceController {
 

@@ -10,4 +10,5 @@ public interface EvaluationRisqueRepository extends JpaRepository<EvaluationRisq
     Optional<EvaluationRisque> findByDemandeCreditId(Long demandeId);
 
     boolean existsByDemandeCreditId(Long demandeId);
+
 }
