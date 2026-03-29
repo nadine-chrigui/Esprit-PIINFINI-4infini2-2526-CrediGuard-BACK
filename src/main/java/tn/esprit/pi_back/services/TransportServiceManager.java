@@ -38,7 +38,6 @@ public class TransportServiceManager {
         TransportService existing = getTransportServiceById(id);
         existing.setEvent(updated.getEvent());
         existing.setTransportType(updated.getTransportType());
-        existing.setProvider(updated.getProvider());
         existing.setDeparturePlace(updated.getDeparturePlace());
         existing.setDepartureTime(updated.getDepartureTime());
         existing.setReturnTime(updated.getReturnTime());
@@ -56,12 +55,8 @@ public class TransportServiceManager {
 
     // ---- TransportBooking CRUD simplifié ----
 
-    public List<TransportBooking> getBookingsByTransportService(Long transportServiceId) {
-        return transportBookingRepository.findByTransportServiceId(transportServiceId);
-    }
-
-    public List<TransportBooking> getBookingsByBeneficiary(Long beneficiaryId) {
-        return transportBookingRepository.findByBeneficiaryId(beneficiaryId);
+    public List<TransportBooking> getAllBookings() {
+        return transportBookingRepository.findAll();
     }
 
     public TransportBooking createBooking(TransportBooking booking) {
