@@ -50,9 +50,4 @@ public class Event {
     @NotBlank
     @Column(nullable = false, length = 50)
     private String status; // PLANIFIE, OUVERT_INSCRIPTION, COMPLET, TERMINE, ANNULE
-
-    // Optionnel : organisateur partenaire
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "partner_id")
-    private Partner partner;
 }

@@ -1,66 +1,88 @@
 package tn.esprit.pi_back.controllers;
 
-import lombok.RequiredArgsConstructor;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import tn.esprit.pi_back.entities.Event;
-import tn.esprit.pi_back.entities.EventParticipation;
+import tn.esprit.pi_back.dto.EventParticipationRequestDto;
+import tn.esprit.pi_back.dto.EventParticipationResponseDto;
+import tn.esprit.pi_back.dto.EventRequestDto;
+import tn.esprit.pi_back.dto.EventResponseDto;
 import tn.esprit.pi_back.services.EventService;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/events")
-@RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class EventController {
 
     private final EventService eventService;
 
-    // ---- Event CRUD ----
-
-    @GetMapping
-    public List<Event> getAllEvents() {
-        return eventService.getAllEvents();
+    public EventController(EventService eventService) {
+        this.eventService = eventService;
     }
 
-    @GetMapping("/{id}")
-    public Event getEvent(@PathVariable Long id) {
-        return eventService.getEventById(id);
-    }
+    // ========================= Event =========================
 
+    // CREATE
     @PostMapping
-    public Event createEvent(@RequestBody Event event) {
-        return eventService.createEvent(event);
+    public ResponseEntity<EventResponseDto> createEvent(@Valid @RequestBody EventRequestDto event) {
+        return ResponseEntity.ok(eventService.createEvent(event));
     }
 
+    // UPDATE
     @PutMapping("/{id}")
-    public Event updateEvent(@PathVariable Long id, @RequestBody Event event) {
-        return eventService.updateEvent(id, event);
+    public ResponseEntity<EventResponseDto> updateEvent(@PathVariable Long id, @Valid @RequestBody EventRequestDto event) {
+        return ResponseEntity.ok(eventService.updateEvent(id, event));
     }
 
+    // GET BY ID
+    @GetMapping("/{id}")
+    public ResponseEntity<EventResponseDto> getEventById(@PathVariable Long id) {
+        return ResponseEntity.ok(eventService.getEventById(id));
+    }
+
+    // GET ALL
+    @GetMapping
+    public ResponseEntity<List<EventResponseDto>> getAllEvents() {
+        return ResponseEntity.ok(eventService.getAllEvents());
+    }
+
+    // DELETE
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteEvent(@PathVariable Long id) {
         eventService.deleteEvent(id);
         return ResponseEntity.noContent().build();
     }
 
-    // ---- EventParticipation ----
+    // ==================== EventParticipation ====================
 
-    @GetMapping("/{eventId}/participations")
-    public List<EventParticipation> getParticipationsByEvent(@PathVariable Long eventId) {
-        return eventService.getParticipationsByEvent(eventId);
-    }
-
-    @GetMapping("/beneficiaries/{beneficiaryId}/participations")
-    public List<EventParticipation> getParticipationsByBeneficiary(@PathVariable Long beneficiaryId) {
-        return eventService.getParticipationsByBeneficiary(beneficiaryId);
-    }
-
+    // CREATE
     @PostMapping("/participations")
-    public EventParticipation createParticipation(@RequestBody EventParticipation participation) {
-        return eventService.createParticipation(participation);
+    public ResponseEntity<EventParticipationResponseDto> createParticipation(@Valid @RequestBody EventParticipationRequestDto participation) {
+        return ResponseEntity.ok(eventService.createParticipation(participation));
     }
 
+    // UPDATE
+    @PutMapping("/participations/{id}")
+    public ResponseEntity<EventParticipationResponseDto> updateParticipation(@PathVariable Long id,
+                                                                             @Valid @RequestBody EventParticipationRequestDto participation) {
+        return ResponseEntity.ok(eventService.updateParticipation(id, participation));
+    }
+
+    // GET BY ID
+    @GetMapping("/participations/{id}")
+    public ResponseEntity<EventParticipationResponseDto> getParticipationById(@PathVariable Long id) {
+        return ResponseEntity.ok(eventService.getParticipationById(id));
+    }
+
+    // GET ALL
+    @GetMapping("/participations")
+    public ResponseEntity<List<EventParticipationResponseDto>> getAllParticipations() {
+        return ResponseEntity.ok(eventService.getAllParticipations());
+    }
+
+    // DELETE
     @DeleteMapping("/participations/{id}")
     public ResponseEntity<Void> deleteParticipation(@PathVariable Long id) {
         eventService.deleteParticipation(id);

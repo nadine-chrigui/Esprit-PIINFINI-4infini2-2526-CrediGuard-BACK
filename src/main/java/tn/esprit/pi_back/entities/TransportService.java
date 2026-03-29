@@ -1,5 +1,6 @@
 package tn.esprit.pi_back.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -22,15 +23,12 @@ public class TransportService {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "event_id", nullable = false)
+    @JsonIgnore
     private Event event;
 
     @NotBlank
     @Column(nullable = false, length = 50)
     private String transportType; // BUS, MINIBUS, VOITURE, NAVETTE
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "partner_id")
-    private Partner provider; // partenaire transporteur (optionnel)
 
     @NotBlank
     @Column(nullable = false, length = 255)

@@ -1,15 +1,9 @@
 package tn.esprit.pi_back.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.rest.core.annotation.RepositoryRestResource;
+import org.springframework.stereotype.Repository;
 import tn.esprit.pi_back.entities.TransportBooking;
 
-import java.util.List;
-
-@RepositoryRestResource(path = "transport-bookings")
+@Repository
 public interface TransportBookingRepository extends JpaRepository<TransportBooking, Long> {
-
-    List<TransportBooking> findByBeneficiaryId(Long beneficiaryId);
-
-    List<TransportBooking> findByTransportServiceId(Long transportServiceId);
 }

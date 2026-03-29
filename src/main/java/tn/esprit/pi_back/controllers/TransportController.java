@@ -1,70 +1,92 @@
 package tn.esprit.pi_back.controllers;
 
-import lombok.RequiredArgsConstructor;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import tn.esprit.pi_back.entities.TransportBooking;
-import tn.esprit.pi_back.entities.TransportService;
-import tn.esprit.pi_back.services.TransportServiceManager;
+import tn.esprit.pi_back.dto.TransportBookingRequestDto;
+import tn.esprit.pi_back.dto.TransportBookingResponseDto;
+import tn.esprit.pi_back.dto.TransportServiceRequestDto;
+import tn.esprit.pi_back.dto.TransportServiceResponseDto;
+import tn.esprit.pi_back.services.TransportManagementService;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/transport")
-@RequiredArgsConstructor
+@RequestMapping("/api/transports")
+@CrossOrigin(origins = "*")
 public class TransportController {
 
-    private final TransportServiceManager transportServiceManager;
+    private final TransportManagementService transportManagementService;
 
-    // ---- TransportService CRUD ----
-
-    @GetMapping("/services")
-    public List<TransportService> getAllTransportServices() {
-        return transportServiceManager.getAllTransportServices();
+    public TransportController(TransportManagementService transportManagementService) {
+        this.transportManagementService = transportManagementService;
     }
 
-    @GetMapping("/services/{id}")
-    public TransportService getTransportService(@PathVariable Long id) {
-        return transportServiceManager.getTransportServiceById(id);
-    }
+    // ===================== TransportService =====================
 
+    // CREATE
     @PostMapping("/services")
-    public TransportService createTransportService(@RequestBody TransportService service) {
-        return transportServiceManager.createTransportService(service);
+    public ResponseEntity<TransportServiceResponseDto> createTransportService(@Valid @RequestBody TransportServiceRequestDto transportService) {
+        return ResponseEntity.ok(transportManagementService.createTransportService(transportService));
     }
 
+    // UPDATE
     @PutMapping("/services/{id}")
-    public TransportService updateTransportService(@PathVariable Long id,
-                                                   @RequestBody TransportService service) {
-        return transportServiceManager.updateTransportService(id, service);
+    public ResponseEntity<TransportServiceResponseDto> updateTransportService(@PathVariable Long id,
+                                                                              @Valid @RequestBody TransportServiceRequestDto transportService) {
+        return ResponseEntity.ok(transportManagementService.updateTransportService(id, transportService));
     }
 
+    // GET BY ID
+    @GetMapping("/services/{id}")
+    public ResponseEntity<TransportServiceResponseDto> getTransportServiceById(@PathVariable Long id) {
+        return ResponseEntity.ok(transportManagementService.getTransportServiceById(id));
+    }
+
+    // GET ALL
+    @GetMapping("/services")
+    public ResponseEntity<List<TransportServiceResponseDto>> getAllTransportServices() {
+        return ResponseEntity.ok(transportManagementService.getAllTransportServices());
+    }
+
+    // DELETE
     @DeleteMapping("/services/{id}")
     public ResponseEntity<Void> deleteTransportService(@PathVariable Long id) {
-        transportServiceManager.deleteTransportService(id);
+        transportManagementService.deleteTransportService(id);
         return ResponseEntity.noContent().build();
     }
 
-    // ---- TransportBooking ----
+    // ===================== TransportBooking =====================
 
-    @GetMapping("/services/{serviceId}/bookings")
-    public List<TransportBooking> getBookingsByService(@PathVariable Long serviceId) {
-        return transportServiceManager.getBookingsByTransportService(serviceId);
-    }
-
-    @GetMapping("/beneficiaries/{beneficiaryId}/bookings")
-    public List<TransportBooking> getBookingsByBeneficiary(@PathVariable Long beneficiaryId) {
-        return transportServiceManager.getBookingsByBeneficiary(beneficiaryId);
-    }
-
+    // CREATE
     @PostMapping("/bookings")
-    public TransportBooking createBooking(@RequestBody TransportBooking booking) {
-        return transportServiceManager.createBooking(booking);
+    public ResponseEntity<TransportBookingResponseDto> createBooking(@Valid @RequestBody TransportBookingRequestDto booking) {
+        return ResponseEntity.ok(transportManagementService.createBooking(booking));
     }
 
+    // UPDATE
+    @PutMapping("/bookings/{id}")
+    public ResponseEntity<TransportBookingResponseDto> updateBooking(@PathVariable Long id,
+                                                                     @Valid @RequestBody TransportBookingRequestDto booking) {
+        return ResponseEntity.ok(transportManagementService.updateBooking(id, booking));
+    }
+
+    // GET BY ID
+    @GetMapping("/bookings/{id}")
+    public ResponseEntity<TransportBookingResponseDto> getBookingById(@PathVariable Long id) {
+        return ResponseEntity.ok(transportManagementService.getBookingById(id));
+    }
+
+    // GET ALL
+    @GetMapping("/bookings")
+    public ResponseEntity<List<TransportBookingResponseDto>> getAllBookings() {
+        return ResponseEntity.ok(transportManagementService.getAllBookings());
+    }
+
+    // DELETE
     @DeleteMapping("/bookings/{id}")
     public ResponseEntity<Void> deleteBooking(@PathVariable Long id) {
-        transportServiceManager.deleteBooking(id);
+        transportManagementService.deleteBooking(id);
         return ResponseEntity.noContent().build();
     }
 }
