@@ -11,4 +11,5 @@ public interface ProductService {
     List<ProductResponse> getMine();
     ProductResponse update(Long id, ProductUpdateRequest req);
     void delete(Long id);
+    List<ProductResponse> getBySellerId(Long sellerId);
 }

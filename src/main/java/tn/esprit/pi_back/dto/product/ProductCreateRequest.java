@@ -37,6 +37,8 @@ public record ProductCreateRequest(
 
         PaymentType paymentMode,
 
+        String imageUrl,
+
         @DecimalMin(value = "0.0", inclusive = false, message = "depositPercentage must be > 0")
         @DecimalMax(value = "1.0", message = "depositPercentage must be <= 1 (ex: 0.2 = 20%)")
         Double depositPercentage,

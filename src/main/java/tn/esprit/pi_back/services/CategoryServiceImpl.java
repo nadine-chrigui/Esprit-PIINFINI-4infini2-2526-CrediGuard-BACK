@@ -61,12 +61,23 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Category not found"));
 
-        if (req.name() != null) {
+        if (req.name() != null && !req.name().trim().isBlank()) {
             category.setName(req.name().trim());
         }
 
         if (req.description() != null) {
             category.setDescription(req.description());
+        }
+
+        if (req.parentId() != null) {
+            if (req.parentId().equals(id)) {
+                throw new RuntimeException("A category cannot be its own parent");
+            }
+
+            Category parent = categoryRepository.findById(req.parentId())
+                    .orElseThrow(() -> new RuntimeException("Parent not found"));
+
+            category.setParent(parent);
         }
 
         return mapToResponse(category);

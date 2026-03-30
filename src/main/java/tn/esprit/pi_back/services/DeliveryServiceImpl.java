@@ -158,4 +158,12 @@ public class DeliveryServiceImpl implements DeliveryService {
                 d.getUpdatedAt()
         );
     }
+    @Override
+    @Transactional(readOnly = true)
+    public List<DeliveryResponse> getAllDeliveries() {
+        return deliveryRepository.findAll()
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
 }

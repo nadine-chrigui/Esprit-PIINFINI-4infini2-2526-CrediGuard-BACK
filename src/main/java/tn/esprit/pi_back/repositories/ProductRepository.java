@@ -15,4 +15,5 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     Optional<Product> findByIdAndActiveTrue(Long id);
 
     Optional<Product> findByIdAndSellerIdAndActiveTrue(Long id, Long sellerId);
+
 }

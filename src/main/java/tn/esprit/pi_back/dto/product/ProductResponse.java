@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 public record ProductResponse(
         Long id,
         Long sellerId,
+        String sellerName,
         Long categoryId,
         String name,
         String description,
@@ -29,5 +30,6 @@ public record ProductResponse(
         LocalDateTime expectedReleaseDate,
         boolean active,
         LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        LocalDateTime updatedAt,
+        String imageUrl
 ) {}

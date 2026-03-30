@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
 
 public record OrderCreateRequest(
-        Long promoCodeId,
-        List<OrderItemCreateRequest> items
+        String promoCode,
+
+        @NotEmpty(message = "items are required")
+        List<@Valid OrderItemCreateRequest> items
 ) {}

@@ -11,4 +11,5 @@ public interface DeliveryService {
     DeliveryResponse getByOrderId(Long orderId);
     List<DeliveryResponse> getMine();
     void delete(Long id);
+     List<DeliveryResponse> getAllDeliveries();
 }

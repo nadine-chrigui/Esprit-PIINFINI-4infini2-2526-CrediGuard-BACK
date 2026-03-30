@@ -10,7 +10,7 @@ import tn.esprit.pi_back.services.DeliveryService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/deliveries")
+@RequestMapping("/deliveries")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class DeliveryController {
@@ -47,5 +47,9 @@ public class DeliveryController {
     public ResponseEntity<Void> cancel(@PathVariable Long id) {
         deliveryService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+    @GetMapping("/admin")
+    public ResponseEntity<List<DeliveryResponse>> getAllDeliveriesAdmin() {
+        return ResponseEntity.ok(deliveryService.getAllDeliveries());
     }
 }

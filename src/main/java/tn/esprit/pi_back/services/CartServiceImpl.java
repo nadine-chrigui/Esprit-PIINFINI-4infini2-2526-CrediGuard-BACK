@@ -20,10 +20,11 @@ public class CartServiceImpl implements CartService {
     private final ProductRepository productRepository;
     private final UserService userService;
 
+
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public CartResponse getMyCart() {
-        User me = userService.getCurrentUserOrThrow(); // ✅ PAS getOrCreateCurrentUser
+        User me = userService.getCurrentUserOrThrow();
         Cart cart = getOrCreateActiveCart(me);
         return toResponse(cart);
     }
@@ -123,6 +124,7 @@ public class CartServiceImpl implements CartService {
                     i.getId(),
                     i.getProduct().getId(),
                     i.getProduct().getName(),
+                    i.getProduct().getImageUrl(),
                     price,
                     qty,
                     price * qty

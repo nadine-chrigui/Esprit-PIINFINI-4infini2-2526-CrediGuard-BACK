@@ -30,6 +30,7 @@ public class ProductServiceImpl implements ProductService {
 
         Product p = new Product();
         p.setSeller(me);
+
         p.setCategory(category);
 
         p.setName(req.name().trim());
@@ -52,8 +53,9 @@ public class ProductServiceImpl implements ProductService {
         p.setPreorderStartDate(req.preorderStartDate());
         p.setPreorderEndDate(req.preorderEndDate());
         p.setExpectedReleaseDate(req.expectedReleaseDate());
-
+        p.setImageUrl(req.imageUrl());
         Product saved = productRepository.save(p);
+
         return toResponse(saved);
     }
 
@@ -120,7 +122,9 @@ public class ProductServiceImpl implements ProductService {
         if (req.preorderStartDate() != null) p.setPreorderStartDate(req.preorderStartDate());
         if (req.preorderEndDate() != null) p.setPreorderEndDate(req.preorderEndDate());
         if (req.expectedReleaseDate() != null) p.setExpectedReleaseDate(req.expectedReleaseDate());
-
+        if (req.imageUrl() != null) {
+            p.setImageUrl(req.imageUrl());
+        }
         if (req.active() != null) p.setActive(req.active());
 
         Product saved = productRepository.save(p);
@@ -142,11 +146,21 @@ public class ProductServiceImpl implements ProductService {
         p.setActive(false);
         productRepository.save(p);
     }
+    @Override
+    public List<ProductResponse> getBySellerId(Long sellerId) {
+        return productRepository.findBySellerIdAndActiveTrue(sellerId)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
 
     private ProductResponse toResponse(Product p) {
         return new ProductResponse(
                 p.getId(),
                 p.getSeller() != null ? p.getSeller().getId() : null,
+                p.getSeller() != null ? p.getSeller().getFullName() : null,
+
+
                 p.getCategory() != null ? p.getCategory().getId() : null,
                 p.getName(),
                 p.getDescription(),
@@ -154,6 +168,7 @@ public class ProductServiceImpl implements ProductService {
                 p.getCurrentPrice(),
                 p.isDynamicPricingEnabled(),
                 p.getPricingStrategy(),
+
                 p.getSaleType(),
                 p.getStockQuantity(),
                 p.getPreorderQuota(),
@@ -167,7 +182,9 @@ public class ProductServiceImpl implements ProductService {
                 p.getExpectedReleaseDate(),
                 p.isActive(),
                 p.getCreatedAt(),
-                p.getUpdatedAt()
+                p.getUpdatedAt(),
+                p.getImageUrl()
         );
     }
+
 }
