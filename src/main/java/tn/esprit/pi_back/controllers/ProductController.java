@@ -3,6 +3,7 @@ package tn.esprit.pi_back.controllers;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,7 +29,38 @@ public class ProductController {
 
     private final ProductService productService;
 
+    /**
+     * Public list of products
+     */
+    @GetMapping
+    public ResponseEntity<List<ProductResponse>> getAll() {
+        return ResponseEntity.ok(productService.getAll());
+    }
+
+    /**
+     * Public product detail
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<ProductResponse> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(productService.getById(id));
+    }
+
+    /**
+     * Products of current logged seller
+     * Allowed only for BENEFICIARY and PARTNER
+     */
+    @GetMapping("/mine")
+    @PreAuthorize("hasAnyRole('ADMIN','BENEFICIARY','PARTNER')")
+    public ResponseEntity<List<ProductResponse>> getMine() {
+        return ResponseEntity.ok(productService.getMine());
+    }
+
+    /**
+     * Create product by current logged seller
+     * Allowed only for BENEFICIARY and PARTNER
+     */
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN','BENEFICIARY','PARTNER')")
     public ResponseEntity<ProductResponse> create(@Valid @RequestBody ProductCreateRequest req) {
         ProductResponse created = productService.create(req);
         return ResponseEntity
@@ -36,22 +68,12 @@ public class ProductController {
                 .body(created);
     }
 
-    @GetMapping
-    public ResponseEntity<List<ProductResponse>> getAll() {
-        return ResponseEntity.ok(productService.getAll());
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<ProductResponse> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(productService.getById(id));
-    }
-
-    @GetMapping("/me")
-    public ResponseEntity<List<ProductResponse>> getMine() {
-        return ResponseEntity.ok(productService.getMine());
-    }
-
+    /**
+     * Update own product
+     * Allowed only for BENEFICIARY and PARTNER
+     */
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','BENEFICIARY','PARTNER')")
     public ResponseEntity<ProductResponse> update(
             @PathVariable Long id,
             @Valid @RequestBody ProductUpdateRequest req
@@ -59,13 +81,23 @@ public class ProductController {
         return ResponseEntity.ok(productService.update(id, req));
     }
 
+    /**
+     * Delete own product
+     * Allowed only for BENEFICIARY and PARTNER
+     */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','BENEFICIARY','PARTNER')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         productService.delete(id);
         return ResponseEntity.noContent().build();
     }
 
+    /**
+     * Upload product image
+     * Allowed only for BENEFICIARY and PARTNER
+     */
     @PostMapping("/upload-image")
+    @PreAuthorize("hasAnyRole('ADMIN','BENEFICIARY','PARTNER')")
     public ResponseEntity<String> uploadImage(@RequestParam("file") MultipartFile file) throws IOException {
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body("File is empty.");
@@ -93,6 +125,10 @@ public class ProductController {
         return ResponseEntity.ok(fileUrl);
     }
 
+    /**
+     * Public products by seller id
+     * Useful for seller public profile / storefront
+     */
     @GetMapping("/seller/{sellerId}")
     public ResponseEntity<List<ProductResponse>> getBySellerId(@PathVariable Long sellerId) {
         return ResponseEntity.ok(productService.getBySellerId(sellerId));

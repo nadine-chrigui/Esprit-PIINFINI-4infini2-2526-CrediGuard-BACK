@@ -3,9 +3,11 @@ package tn.esprit.pi_back.services;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tn.esprit.pi_back.dto.Category.CategoryCreateRequest;
 import tn.esprit.pi_back.dto.Category.CategoryResponse;
-import tn.esprit.pi_back.dto.Category.*;
+import tn.esprit.pi_back.dto.Category.CategoryUpdateRequest;
 import tn.esprit.pi_back.entities.Category;
+import tn.esprit.pi_back.mappers.CategoryMapper;
 import tn.esprit.pi_back.repositories.CategoryRepository;
 
 import java.util.List;
@@ -16,6 +18,7 @@ import java.util.List;
 public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final CategoryMapper categoryMapper;
 
     @Override
     public CategoryResponse create(CategoryCreateRequest req) {
@@ -25,35 +28,34 @@ public class CategoryServiceImpl implements CategoryService {
             throw new RuntimeException("Category already exists");
         }
 
-        Category category = new Category();
-        category.setName(name);
-        category.setDescription(req.description());
-
+        Category parent = null;
         if (req.parentId() != null) {
-            Category parent = categoryRepository.findById(req.parentId())
+            parent = categoryRepository.findById(req.parentId())
                     .orElseThrow(() -> new RuntimeException("Parent not found"));
-            category.setParent(parent);
         }
 
+        Category category = categoryMapper.toEntity(req, parent);
         Category saved = categoryRepository.save(category);
 
-        return mapToResponse(saved);
+        return categoryMapper.toResponse(saved);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<CategoryResponse> getAll() {
         return categoryRepository.findAll()
                 .stream()
-                .map(this::mapToResponse)
+                .map(categoryMapper::toResponse)
                 .toList();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public CategoryResponse getById(Long id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Category not found"));
 
-        return mapToResponse(category);
+        return categoryMapper.toResponse(category);
     }
 
     @Override
@@ -61,42 +63,24 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Category not found"));
 
-        if (req.name() != null && !req.name().trim().isBlank()) {
-            category.setName(req.name().trim());
-        }
-
-        if (req.description() != null) {
-            category.setDescription(req.description());
-        }
-
+        Category parent = null;
         if (req.parentId() != null) {
             if (req.parentId().equals(id)) {
                 throw new RuntimeException("A category cannot be its own parent");
             }
 
-            Category parent = categoryRepository.findById(req.parentId())
+            parent = categoryRepository.findById(req.parentId())
                     .orElseThrow(() -> new RuntimeException("Parent not found"));
-
-            category.setParent(parent);
         }
 
-        return mapToResponse(category);
+        categoryMapper.updateEntity(category, req, parent);
+
+        Category saved = categoryRepository.save(category);
+        return categoryMapper.toResponse(saved);
     }
 
     @Override
     public void delete(Long id) {
         categoryRepository.deleteById(id);
-    }
-
-    private CategoryResponse mapToResponse(Category c) {
-        return new CategoryResponse(
-                c.getId(),
-                c.getName(),
-                c.getDescription(),
-                c.getParent() != null ? c.getParent().getId() : null,
-                c.getChildren() != null ? c.getChildren().size() : 0,
-                c.getCreatedAt(),
-                c.getUpdatedAt()
-        );
     }
 }

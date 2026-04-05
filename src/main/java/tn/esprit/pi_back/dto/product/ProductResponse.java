@@ -11,6 +11,7 @@ public record ProductResponse(
         Long sellerId,
         String sellerName,
         Long categoryId,
+        String categoryName,
         String name,
         String description,
         Double basePrice,
