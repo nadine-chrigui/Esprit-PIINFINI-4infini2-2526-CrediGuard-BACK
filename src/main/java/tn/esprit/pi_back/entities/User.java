@@ -85,13 +85,6 @@ public class User  implements UserDetails
     public boolean isEnabled() {
         return Boolean.TRUE.equals(enabled);
     }
-    private String resetToken;
 
-    private LocalDateTime resetTokenExpiry;
 
-    private Boolean twoFactorEnabled = false;
-
-    private String otpCode;
-
-    private LocalDateTime otpExpiry;
 }

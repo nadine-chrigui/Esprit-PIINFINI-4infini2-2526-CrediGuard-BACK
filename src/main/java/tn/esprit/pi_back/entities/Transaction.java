@@ -5,10 +5,6 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 import tn.esprit.pi_back.entities.enums.TransactionStatut;
 import tn.esprit.pi_back.entities.enums.TransactionType;
-import tn.esprit.pi_back.entities.enums.PaymentSource;
-import tn.esprit.pi_back.entities.Voucher;
-
-
 
 import java.time.LocalDateTime;
 
@@ -61,20 +57,6 @@ public class Transaction {
     @JoinColumn(name = "id_compte_destination")
     private CompteFinancier compteDestination;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="voucher_transaction_id", unique = true)
-    private Voucher voucher;
-
-    // ✅ Partner = User (userType = PARTNER)
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "partner_id")
-    private User partner;
-
-    // ✅ Qui paye ?
-    @Enumerated(EnumType.STRING)
-    @Column(length = 20)
-    private PaymentSource paymentSource; // CLIENT / INSURANCE
-
     /* ================= LIAISON E-COMMERCE ================= */
 
     // Référence de l'Order qui a déclenché cette transaction
@@ -93,6 +75,8 @@ public class Transaction {
         }
     }
 
-
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="voucher_id", unique = true)
+    private Voucher voucher;
 
 }

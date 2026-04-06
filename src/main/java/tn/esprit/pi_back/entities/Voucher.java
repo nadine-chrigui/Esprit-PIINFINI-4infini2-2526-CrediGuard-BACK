@@ -38,18 +38,18 @@ public class Voucher {
 
     private LocalDate expirationDate;
 
-    // ✅ بدل Beneficiary : voucher appartient à un User CLIENT
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "client_id", nullable = false)
-    private User client;
+    @JoinColumn(name = "beneficiary_id", nullable = false)
+    private Beneficiary beneficiary;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "demande_credit_id", unique = true)
     private DemandeCredit demandeCredit;
 
     // 1 voucher -> 0..1 transaction
-    @OneToOne(mappedBy = "voucher", fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "voucher")
     private Transaction transaction;
+
 
     // 1 voucher -> 0..1 claim
     @OneToOne(mappedBy = "voucher", fetch = FetchType.LAZY)

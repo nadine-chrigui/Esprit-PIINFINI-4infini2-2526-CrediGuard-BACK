@@ -17,7 +17,6 @@ import java.util.List;
 @AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(exclude = {"user", "items"})
-@Table(name = "orders")
 public class Order {
 
     @Id
@@ -56,10 +55,6 @@ public class Order {
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items = new ArrayList<>();
-
-
-    @OneToOne(mappedBy = "order", fetch = FetchType.LAZY)
-    private Payment payment;
 
     /* ================= FINANCE LINK ================= */
 
