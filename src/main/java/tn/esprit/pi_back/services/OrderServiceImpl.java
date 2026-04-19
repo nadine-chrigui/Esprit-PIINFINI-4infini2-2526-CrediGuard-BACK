@@ -5,7 +5,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tn.esprit.pi_back.dto.order.*;
+import tn.esprit.pi_back.dto.order.OrderAdminResponse;
+import tn.esprit.pi_back.dto.order.OrderCreateRequest;
+import tn.esprit.pi_back.dto.order.OrderItemCreateRequest;
+import tn.esprit.pi_back.dto.order.OrderResponse;
+import tn.esprit.pi_back.dto.order.OrderStatusUpdateRequest;
+import tn.esprit.pi_back.dto.order.OrderUpdateRequest;
+import tn.esprit.pi_back.dto.promotion.ProductPriceView;
 import tn.esprit.pi_back.entities.Order;
 import tn.esprit.pi_back.entities.OrderItem;
 import tn.esprit.pi_back.entities.Product;
@@ -18,6 +24,7 @@ import tn.esprit.pi_back.mappers.OrderMapper;
 import tn.esprit.pi_back.repositories.OrderRepository;
 import tn.esprit.pi_back.repositories.ProductRepository;
 import tn.esprit.pi_back.repositories.PromoCodeRepository;
+import tn.esprit.pi_back.repositories.UserRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -35,7 +42,9 @@ public class OrderServiceImpl implements OrderService {
     private final ProductRepository productRepository;
     private final PromoCodeRepository promoCodeRepository;
     private final UserService userService;
+    private final UserRepository userRepository;
     private final OrderMapper orderMapper;
+    private final PromotionService promotionService;
 
     @Override
     public OrderResponse create(OrderCreateRequest req) {
@@ -55,6 +64,23 @@ public class OrderServiceImpl implements OrderService {
                     .orElseThrow(() -> new IllegalArgumentException("Promo code not found"));
         }
 
+        double cartSubtotal = 0.0;
+
+        for (OrderItemCreateRequest it : req.items()) {
+            Product product = productRepository.findById(it.productId())
+                    .orElseThrow(() -> new IllegalArgumentException("Product not found: " + it.productId()));
+
+            Double basePrice = product.getCurrentPrice() != null
+                    ? product.getCurrentPrice()
+                    : product.getBasePrice();
+
+            if (basePrice == null) {
+                throw new IllegalStateException("Product price is null for product: " + product.getId());
+            }
+
+            cartSubtotal += basePrice * it.quantity();
+        }
+
         List<OrderItem> items = new ArrayList<>();
         double total = 0.0;
 
@@ -62,14 +88,9 @@ public class OrderServiceImpl implements OrderService {
             Product product = productRepository.findById(it.productId())
                     .orElseThrow(() -> new IllegalArgumentException("Product not found: " + it.productId()));
 
-            Double unitPrice = product.getCurrentPrice() != null
-                    ? product.getCurrentPrice()
-                    : product.getBasePrice();
+            ProductPriceView priceView = promotionService.calculateProductPrice(product, cartSubtotal);
 
-            if (unitPrice == null) {
-                throw new IllegalStateException("Product price is null for product: " + product.getId());
-            }
-
+            double unitPrice = priceView.finalPrice();
             int qty = it.quantity();
             double lineTotal = unitPrice * qty;
 
@@ -133,9 +154,15 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<OrderResponse> getMine() {
-        User me = userService.getOrCreateCurrentUser();
-        return orderRepository.findByUserId(me.getId())
+    public List<OrderResponse> getMine(String email) {
+        if (email == null || email.isBlank() || "anonymousUser".equals(email)) {
+            throw new SecurityException("Unauthorized: no authenticated user found.");
+        }
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+
+        return orderRepository.findByUserId(user.getId())
                 .stream()
                 .map(orderMapper::toResponse)
                 .toList();

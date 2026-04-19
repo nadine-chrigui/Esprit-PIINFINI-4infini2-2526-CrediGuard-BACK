@@ -37,6 +37,23 @@ public class ProductController {
         return ResponseEntity.ok(productService.getAll());
     }
 
+    @GetMapping("/admin")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<ProductResponse>> getAllAdmin(
+            @RequestParam(required = false) Boolean active
+    ) {
+        return ResponseEntity.ok(productService.getAllAdmin(active));
+    }
+
+    @PatchMapping("/admin/{id}/active")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ProductResponse> updateActiveAdmin(
+            @PathVariable Long id,
+            @RequestParam boolean active
+    ) {
+        return ResponseEntity.ok(productService.updateActiveAdmin(id, active));
+    }
+
     /**
      * Public product detail
      */

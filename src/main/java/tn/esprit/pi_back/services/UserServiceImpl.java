@@ -70,6 +70,23 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public List<User> getAll(Boolean enabled, UserType userType) {
+        if (enabled != null && userType != null) {
+            return userRepository.findByEnabledAndUserTypeOrderByCreatedAtDesc(enabled, userType);
+        }
+
+        if (enabled != null) {
+            return userRepository.findByEnabledOrderByCreatedAtDesc(enabled);
+        }
+
+        if (userType != null) {
+            return userRepository.findByUserTypeOrderByCreatedAtDesc(userType);
+        }
+
+        return userRepository.findAll();
+    }
+
+    @Override
     public void delete(Long id) {
         User existing = getById(id);
         userRepository.delete(existing);
@@ -155,6 +172,23 @@ public class UserServiceImpl implements UserService {
                 saved.getUserType(),
                 saved.isEnabled()
         );
+    }
+
+    @Override
+    public User updateEnabled(Long id, Boolean enabled) {
+        if (enabled == null) {
+            throw new IllegalArgumentException("enabled is required");
+        }
+
+        User existing = getById(id);
+        User currentUser = getCurrentUserOrThrow();
+
+        if (Boolean.FALSE.equals(enabled) && currentUser.getId().equals(existing.getId())) {
+            throw new IllegalArgumentException("Admin cannot disable the currently authenticated account.");
+        }
+
+        existing.setEnabled(enabled);
+        return userRepository.save(existing);
     }
 
 }

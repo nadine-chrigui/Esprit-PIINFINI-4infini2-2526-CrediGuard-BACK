@@ -12,4 +12,6 @@ public interface ProductService {
     ProductResponse update(Long id, ProductUpdateRequest req);
     void delete(Long id);
     List<ProductResponse> getBySellerId(Long sellerId);
+    List<ProductResponse> getAllAdmin(Boolean active);
+    ProductResponse updateActiveAdmin(Long id, boolean active);
 }

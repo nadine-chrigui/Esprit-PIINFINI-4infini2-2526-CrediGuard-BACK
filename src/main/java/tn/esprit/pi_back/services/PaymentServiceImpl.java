@@ -6,14 +6,15 @@ import org.springframework.transaction.annotation.Transactional;
 import tn.esprit.pi_back.dto.Payment.PaymentCreateRequest;
 import tn.esprit.pi_back.dto.Payment.PaymentResponse;
 import tn.esprit.pi_back.dto.Payment.PaymentUpdateRequest;
-import tn.esprit.pi_back.entities.Order;
-import tn.esprit.pi_back.entities.Payment;
-import tn.esprit.pi_back.entities.User;
+import tn.esprit.pi_back.entities.*;
+import tn.esprit.pi_back.entities.enums.OrderStatus;
 import tn.esprit.pi_back.entities.enums.PaymentStatus;
+import tn.esprit.pi_back.entities.enums.SaleMode;
 import tn.esprit.pi_back.entities.enums.UserType;
 import tn.esprit.pi_back.mappers.PaymentMapper;
 import tn.esprit.pi_back.repositories.OrderRepository;
 import tn.esprit.pi_back.repositories.PaymentRepository;
+import tn.esprit.pi_back.repositories.ProductRepository;
 
 import java.util.List;
 
@@ -26,6 +27,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final OrderRepository orderRepository;
     private final UserService userService;
     private final PaymentMapper paymentMapper;
+    private final ProductRepository productRepository;
 
     @Override
     public PaymentResponse create(PaymentCreateRequest req) {
@@ -128,6 +130,15 @@ public class PaymentServiceImpl implements PaymentService {
 
         if (req.paymentStatus() != null) {
             p.setPaymentStatus(req.paymentStatus());
+
+            Order order = p.getOrder();
+            if (order != null) {
+                if (req.paymentStatus() == PaymentStatus.PAID) {
+                    order.setStatus(OrderStatus.PAID);
+                } else if (req.paymentStatus() == PaymentStatus.FAILED) {
+                    order.setStatus(OrderStatus.CANCELED);
+                }
+            }
         }
 
         Payment saved = paymentRepository.save(p);
@@ -154,5 +165,28 @@ public class PaymentServiceImpl implements PaymentService {
 
     private boolean isAdmin(User user) {
         return user != null && user.getUserType() == UserType.ADMIN;
+    }
+    private void restoreStock(Order order) {
+        if (order == null || order.getItems() == null) {
+            return;
+        }
+
+        for (OrderItem item : order.getItems()) {
+            Product product = item.getProduct();
+            if (product == null) {
+                continue;
+            }
+
+            if (product.getSaleType() == SaleMode.STANDARD) {
+                Integer stock = product.getStockQuantity() != null ? product.getStockQuantity() : 0;
+                product.setStockQuantity(stock + item.getQuantity());
+                productRepository.save(product);
+
+            } else if (product.getSaleType() == SaleMode.PREORDER) {
+                Integer preorderCount = product.getPreorderCount() != null ? product.getPreorderCount() : 0;
+                product.setPreorderCount(Math.max(0, preorderCount - item.getQuantity()));
+                productRepository.save(product);
+            }
+        }
     }
 }

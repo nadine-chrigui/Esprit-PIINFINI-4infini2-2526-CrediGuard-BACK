@@ -9,5 +9,7 @@ public record CartResponse(
         Long userId,
         CartStatus status,
         List<CartItemResponse> items,
+        Double subtotal,
+        Double totalDiscount,
         Double total
 ) {}

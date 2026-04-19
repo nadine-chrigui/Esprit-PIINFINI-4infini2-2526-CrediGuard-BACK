@@ -4,6 +4,7 @@ import tn.esprit.pi_back.dto.ProfileResponse;
 import tn.esprit.pi_back.dto.UpdateProfileRequest;
 import tn.esprit.pi_back.dto.UpdateUserRequest;
 import tn.esprit.pi_back.entities.User;
+import tn.esprit.pi_back.entities.enums.UserType;
 
 import java.util.List;
 
@@ -19,5 +20,7 @@ public interface UserService
         User getOrCreateCurrentUser();
         ProfileResponse getMyProfile();
         ProfileResponse updateMyProfile(UpdateProfileRequest request);
+        List<User> getAll(Boolean enabled, UserType userType);
+        User updateEnabled(Long id, Boolean enabled);
 }
 

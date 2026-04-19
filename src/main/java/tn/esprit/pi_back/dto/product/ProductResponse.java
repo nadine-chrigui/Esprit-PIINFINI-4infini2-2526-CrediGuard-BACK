@@ -32,5 +32,10 @@ public record ProductResponse(
         boolean active,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
-        String imageUrl
+        String imageUrl,
+        Double originalPrice,
+        Double finalPrice,
+        Double discountAmount,
+        Boolean promotionApplied,
+        String promotionName
 ) {}

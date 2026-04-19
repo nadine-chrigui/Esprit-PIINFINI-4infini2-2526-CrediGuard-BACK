@@ -3,8 +3,10 @@ package tn.esprit.pi_back.controllers;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import tn.esprit.pi_back.dto.delivery.*;
+import tn.esprit.pi_back.entities.enums.DeliveryStatus;
 import tn.esprit.pi_back.services.DeliveryService;
 
 import java.util.List;
@@ -49,7 +51,19 @@ public class DeliveryController {
         return ResponseEntity.noContent().build();
     }
     @GetMapping("/admin")
-    public ResponseEntity<List<DeliveryResponse>> getAllDeliveriesAdmin() {
-        return ResponseEntity.ok(deliveryService.getAllDeliveries());
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<DeliveryResponse>> getAllDeliveriesAdmin(
+            @RequestParam(required = false) DeliveryStatus status
+    ) {
+        return ResponseEntity.ok(deliveryService.getAllDeliveries(status));
+    }
+
+    @PatchMapping("/admin/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<DeliveryResponse> updateAdmin(
+            @PathVariable Long id,
+            @Valid @RequestBody DeliveryUpdateRequest req
+    ) {
+        return ResponseEntity.ok(deliveryService.updateAdmin(id, req));
     }
 }

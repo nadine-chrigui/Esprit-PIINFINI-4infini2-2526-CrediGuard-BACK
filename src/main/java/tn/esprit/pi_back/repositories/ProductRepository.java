@@ -18,6 +18,12 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     Optional<Product> findByIdAndSellerIdAndActiveTrue(Long id, Long sellerId);
 
+    long countByActiveTrue();
+
+    long countByActiveFalse();
+
+    List<Product> findByActiveOrderByCreatedAtDesc(boolean active);
+
     @Query("""
         select p.id, p.name, p.seller.fullName, p.category.name, p.stockQuantity
         from Product p

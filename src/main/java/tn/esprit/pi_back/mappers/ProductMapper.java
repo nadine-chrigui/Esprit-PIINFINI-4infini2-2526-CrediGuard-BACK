@@ -84,6 +84,10 @@ public class ProductMapper {
     }
 
     public ProductResponse toResponse(Product product) {
+        Double originalPrice = product.getCurrentPrice() != null
+                ? product.getCurrentPrice()
+                : product.getBasePrice();
+
         return new ProductResponse(
                 product.getId(),
                 product.getSeller() != null ? product.getSeller().getId() : null,
@@ -110,7 +114,12 @@ public class ProductMapper {
                 product.isActive(),
                 product.getCreatedAt(),
                 product.getUpdatedAt(),
-                product.getImageUrl()
+                product.getImageUrl(),
+                originalPrice,   // originalPrice
+                originalPrice,   // finalPrice avant enrichissement
+                0.0,             // discountAmount
+                false,           // promotionApplied
+                null             // promotionName
         );
     }
 }

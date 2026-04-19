@@ -6,6 +6,11 @@ public record CartItemResponse(
         String productName,
         String imageUrl,
         Double unitPrice,
+        Double originalUnitPrice,
+        Double finalUnitPrice,
+        Double discountAmount,
+        Boolean promotionApplied,
+        String promotionName,
         Integer quantity,
         Double lineTotal
 ) {}

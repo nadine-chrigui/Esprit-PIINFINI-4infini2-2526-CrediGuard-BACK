@@ -35,6 +35,7 @@ public class OrderMapper {
                 it.getId(),
                 it.getProduct() != null ? it.getProduct().getId() : null,
                 it.getProduct() != null ? it.getProduct().getName() : null,
+                it.getProduct() != null ? it.getProduct().getImageUrl() : null,
                 it.getQuantity(),
                 it.getUnitPrice(),
                 it.getLineTotal()

@@ -7,6 +7,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import tn.esprit.pi_back.dto.order.*;
 import tn.esprit.pi_back.entities.enums.OrderStatus;
@@ -28,27 +30,29 @@ public class OrderController {
         return ResponseEntity.ok(orderService.create(req));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
     public ResponseEntity<OrderResponse> getById(@PathVariable Long id) {
         return ResponseEntity.ok(orderService.getById(id));
     }
 
     @GetMapping("/me")
-    public ResponseEntity<List<OrderResponse>> getMine() {
-        return ResponseEntity.ok(orderService.getMine());
+    public ResponseEntity<List<OrderResponse>> getMine(org.springframework.security.core.Authentication authentication) {
+        return ResponseEntity.ok(orderService.getMine(authentication.getName()));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{id:\\d+}")
     public ResponseEntity<OrderResponse> update(@PathVariable Long id, @RequestBody OrderUpdateRequest req) {
         return ResponseEntity.ok(orderService.update(id, req));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id:\\d+}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         orderService.delete(id);
         return ResponseEntity.noContent().build();
     }
+
     @GetMapping("/admin")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<OrderAdminResponse>> getAllAdmin(
             @RequestParam(required = false) OrderStatus status,
             @RequestParam(required = false) LocalDate dateFrom,
@@ -67,12 +71,14 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getAllAdmin(status, dateFrom, dateTo, pageable));
     }
 
-    @GetMapping("/admin/{id}")
+    @GetMapping("/admin/{id:\\d+}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<OrderResponse> getAdminById(@PathVariable Long id) {
         return ResponseEntity.ok(orderService.getAdminById(id));
     }
 
-    @PatchMapping("/admin/{id}/status")
+    @PatchMapping("/admin/{id:\\d+}/status")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<OrderResponse> updateStatusAdmin(
             @PathVariable Long id,
             @Valid @RequestBody OrderStatusUpdateRequest req

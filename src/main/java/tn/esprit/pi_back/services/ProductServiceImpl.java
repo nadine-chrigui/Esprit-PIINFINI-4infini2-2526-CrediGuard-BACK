@@ -1,11 +1,13 @@
 package tn.esprit.pi_back.services;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tn.esprit.pi_back.dto.product.ProductCreateRequest;
 import tn.esprit.pi_back.dto.product.ProductResponse;
 import tn.esprit.pi_back.dto.product.ProductUpdateRequest;
+import tn.esprit.pi_back.dto.promotion.ProductPriceView;
 import tn.esprit.pi_back.entities.Category;
 import tn.esprit.pi_back.entities.Product;
 import tn.esprit.pi_back.entities.User;
@@ -25,6 +27,7 @@ public class ProductServiceImpl implements ProductService {
     private final CategoryRepository categoryRepository;
     private final UserService userService;
     private final ProductMapper productMapper;
+    private final PromotionService promotionService;
 
     @Override
     public ProductResponse create(ProductCreateRequest req) {
@@ -36,7 +39,7 @@ public class ProductServiceImpl implements ProductService {
         Product product = productMapper.toEntity(req, me, category);
         Product saved = productRepository.save(product);
 
-        return productMapper.toResponse(saved);
+        return enrich(saved);
     }
 
     @Override
@@ -44,7 +47,7 @@ public class ProductServiceImpl implements ProductService {
     public List<ProductResponse> getAll() {
         return productRepository.findByActiveTrue()
                 .stream()
-                .map(productMapper::toResponse)
+                .map(this::enrich)
                 .toList();
     }
 
@@ -54,7 +57,7 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findByIdAndActiveTrue(id)
                 .orElseThrow(() -> new IllegalArgumentException("Product not found: " + id));
 
-        return productMapper.toResponse(product);
+        return enrich(product);
     }
 
     @Override
@@ -64,7 +67,7 @@ public class ProductServiceImpl implements ProductService {
 
         return productRepository.findBySellerIdAndActiveTrue(me.getId())
                 .stream()
-                .map(productMapper::toResponse)
+                .map(this::enrich)
                 .toList();
     }
 
@@ -86,7 +89,7 @@ public class ProductServiceImpl implements ProductService {
         productMapper.updateEntity(product, req, category);
 
         Product saved = productRepository.save(product);
-        return productMapper.toResponse(saved);
+        return enrich(saved);
     }
 
     @Override
@@ -107,8 +110,73 @@ public class ProductServiceImpl implements ProductService {
     public List<ProductResponse> getBySellerId(Long sellerId) {
         return productRepository.findBySellerIdAndActiveTrue(sellerId)
                 .stream()
-                .map(productMapper::toResponse)
+                .map(this::enrich)
                 .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProductResponse> getAllAdmin(Boolean active) {
+        List<Product> products;
+
+        if (active == null) {
+            products = productRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
+        } else {
+            products = productRepository.findByActiveOrderByCreatedAtDesc(active);
+        }
+
+        return products.stream()
+                .map(this::enrich)
+                .toList();
+    }
+
+    @Override
+    public ProductResponse updateActiveAdmin(Long id, boolean active) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Product not found: " + id));
+
+        product.setActive(active);
+        Product saved = productRepository.save(product);
+        return enrich(saved);
+    }
+
+    private ProductResponse enrich(Product product) {
+        ProductResponse base = productMapper.toResponse(product);
+        ProductPriceView priceView = promotionService.calculateProductPrice(product, null);
+
+        return new ProductResponse(
+                base.id(),
+                base.sellerId(),
+                base.sellerName(),
+                base.categoryId(),
+                base.categoryName(),
+                base.name(),
+                base.description(),
+                base.basePrice(),
+                base.currentPrice(),
+                base.dynamicPricingEnabled(),
+                base.pricingStrategy(),
+                base.saleType(),
+                base.stockQuantity(),
+                base.preorderQuota(),
+                base.preorderCount(),
+                base.paymentMode(),
+                base.depositPercentage(),
+                base.expressDeliveryAvailable(),
+                base.expressDeliveryFee(),
+                base.preorderStartDate(),
+                base.preorderEndDate(),
+                base.expectedReleaseDate(),
+                base.active(),
+                base.createdAt(),
+                base.updatedAt(),
+                base.imageUrl(),
+                priceView.originalPrice(),
+                priceView.finalPrice(),
+                priceView.discountAmount(),
+                priceView.promotionApplied(),
+                priceView.promotionName()
+        );
     }
 
     private User getAuthorizedSeller() {
