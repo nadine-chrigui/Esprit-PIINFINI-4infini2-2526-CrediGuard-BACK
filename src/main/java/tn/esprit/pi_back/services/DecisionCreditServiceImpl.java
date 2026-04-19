@@ -3,11 +3,16 @@ package tn.esprit.pi_back.services;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tn.esprit.pi_back.dto.decision.*;
-import tn.esprit.pi_back.entities.*;
-import tn.esprit.pi_back.entities.enums.*;
+import tn.esprit.pi_back.dto.decision.DecisionCreditRequestDTO;
+import tn.esprit.pi_back.dto.decision.DecisionCreditResponseDTO;
+import tn.esprit.pi_back.entities.DecisionCredit;
+import tn.esprit.pi_back.entities.DemandeCredit;
+import tn.esprit.pi_back.entities.enums.DecisionFinale;
+import tn.esprit.pi_back.entities.enums.StatutDemande;
 import tn.esprit.pi_back.exceptions.ResourceNotFoundException;
-import tn.esprit.pi_back.repositories.*;
+import tn.esprit.pi_back.mappers.DecisionCreditMapper;
+import tn.esprit.pi_back.repositories.DecisionCreditRepository;
+import tn.esprit.pi_back.repositories.DemandeCreditRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -16,6 +21,7 @@ public class DecisionCreditServiceImpl implements DecisionCreditService {
 
     private final DecisionCreditRepository decisionRepo;
     private final DemandeCreditRepository demandeRepo;
+    private final DecisionCreditMapper decisionCreditMapper;
 
     @Override
     public DecisionCreditResponseDTO create(Long demandeId, DecisionCreditRequestDTO dto) {
@@ -23,11 +29,13 @@ public class DecisionCreditServiceImpl implements DecisionCreditService {
         DemandeCredit demande = demandeRepo.findById(demandeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Demande not found"));
 
-        if (decisionRepo.existsByDemandeCreditId(demandeId))
+        if (decisionRepo.existsByDemandeCreditId(demandeId)) {
             throw new IllegalStateException("Decision already exists for this demande");
+        }
 
-        if (demande.getStatut() != StatutDemande.EN_COURS_D_ETUDE)
+        if (demande.getStatut() != StatutDemande.EN_COURS_D_ETUDE) {
             throw new IllegalStateException("Decision can only be taken if demande is EN_COURS_D_ETUDE");
+        }
 
         DecisionCredit decision = new DecisionCredit();
         decision.setDecisionFinale(dto.decisionFinale());
@@ -38,39 +46,22 @@ public class DecisionCreditServiceImpl implements DecisionCreditService {
 
         DecisionCredit saved = decisionRepo.save(decision);
 
-        // 🔥 Synchronisation avec Demande
-        if (dto.decisionFinale() == DecisionFinale.ACCEPTE)
+        if (dto.decisionFinale() == DecisionFinale.ACCEPTE) {
             demande.setStatut(StatutDemande.APPROUVEE);
-
-        else if (dto.decisionFinale() == DecisionFinale.REFUSE)
+        } else if (dto.decisionFinale() == DecisionFinale.REFUSE) {
             demande.setStatut(StatutDemande.REJETEE);
+        }
 
-        // CONDITIONNEL → pas de changement
-
-        return toDTO(saved);
+        return decisionCreditMapper.toResponse(saved);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public DecisionCreditResponseDTO getByDemande(Long demandeId) {
 
         DecisionCredit decision = decisionRepo.findByDemandeCreditId(demandeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Decision not found"));
 
-        return toDTO(decision);
-    }
-
-    private DecisionCreditResponseDTO toDTO(DecisionCredit d) {
-
-        return new DecisionCreditResponseDTO(
-                d.getId(),
-                d.getDecisionFinale(),
-                d.getJustification(),
-                d.getConditions(),
-                d.getDateDecision(),
-                d.getPrisePar(),
-                d.getDemandeCredit().getId(),
-                d.getCreatedAt(),
-                d.getUpdatedAt()
-        );
+        return decisionCreditMapper.toResponse(decision);
     }
 }

@@ -12,6 +12,7 @@ import tn.esprit.pi_back.entities.enums.StatutCredit;
 import tn.esprit.pi_back.entities.enums.StatutDemande;
 import tn.esprit.pi_back.entities.enums.StatutEcheance;
 import tn.esprit.pi_back.exceptions.ResourceNotFoundException;
+import tn.esprit.pi_back.mappers.CreditMapper;
 import tn.esprit.pi_back.repositories.CreditRepository;
 import tn.esprit.pi_back.repositories.DemandeCreditRepository;
 import tn.esprit.pi_back.repositories.EcheanceRepository;
@@ -27,6 +28,7 @@ public class CreditServiceImpl implements CreditService {
     private final CreditRepository creditRepo;
     private final DemandeCreditRepository demandeRepo;
     private final EcheanceRepository echeanceRepo;
+    private final CreditMapper creditMapper;
 
     @Override
     public CreditResponseDTO create(Long demandeId, CreditRequestDTO dto) {
@@ -69,26 +71,43 @@ public class CreditServiceImpl implements CreditService {
 
         generateEcheances(saved);
 
-        return toDTO(saved);
+        return creditMapper.toResponse(saved);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public CreditResponseDTO getById(Long id) {
-        return toDTO(find(id));
+        return creditMapper.toResponse(find(id));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<CreditResponseDTO> getAll(Long clientId, StatutCredit statut) {
-        if (clientId != null && statut != null)
-            return creditRepo.findByClientIdAndStatut(clientId, statut).stream().map(this::toDTO).toList();
+        if (clientId != null && statut != null) {
+            return creditRepo.findByClientIdAndStatut(clientId, statut)
+                    .stream()
+                    .map(creditMapper::toResponse)
+                    .toList();
+        }
 
-        if (clientId != null)
-            return creditRepo.findByClientId(clientId).stream().map(this::toDTO).toList();
+        if (clientId != null) {
+            return creditRepo.findByClientId(clientId)
+                    .stream()
+                    .map(creditMapper::toResponse)
+                    .toList();
+        }
 
-        if (statut != null)
-            return creditRepo.findByStatut(statut).stream().map(this::toDTO).toList();
+        if (statut != null) {
+            return creditRepo.findByStatut(statut)
+                    .stream()
+                    .map(creditMapper::toResponse)
+                    .toList();
+        }
 
-        return creditRepo.findAll().stream().map(this::toDTO).toList();
+        return creditRepo.findAll()
+                .stream()
+                .map(creditMapper::toResponse)
+                .toList();
     }
 
     @Override
@@ -96,8 +115,9 @@ public class CreditServiceImpl implements CreditService {
 
         Credit credit = find(id);
 
-        if (credit.getStatut() != StatutCredit.ACTIF)
+        if (credit.getStatut() != StatutCredit.ACTIF) {
             throw new IllegalStateException("Only ACTIF credit can be updated");
+        }
 
         credit.setMontantAccorde(dto.montantAccorde());
         credit.setMontantTotal(dto.montantAccorde());
@@ -110,58 +130,42 @@ public class CreditServiceImpl implements CreditService {
         credit.setModeRemboursement(dto.modeRemboursement());
         credit.setDateFin(dto.dateFin());
 
-        return toDTO(creditRepo.save(credit));
+        Credit updated = creditRepo.save(credit);
+        return creditMapper.toResponse(updated);
     }
 
     @Override
     public void delete(Long id) {
         Credit credit = find(id);
 
-        if (credit.getStatut() == StatutCredit.ACTIF)
+        if (credit.getStatut() == StatutCredit.ACTIF) {
             throw new IllegalStateException("Cannot delete active credit");
+        }
 
         creditRepo.delete(credit);
     }
 
     @Override
     public CreditResponseDTO changeStatus(Long id, StatutCredit statut) {
-
         Credit credit = find(id);
-
         credit.setStatut(statut);
 
-        return toDTO(creditRepo.save(credit));
+        Credit updated = creditRepo.save(credit);
+        return creditMapper.toResponse(updated);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public CreditResponseDTO getByDemande(Long demandeId) {
         Credit credit = creditRepo.findByDemandeCreditId(demandeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Credit not found"));
 
-        return toDTO(credit);
+        return creditMapper.toResponse(credit);
     }
 
     private Credit find(Long id) {
         return creditRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Credit not found"));
-    }
-
-    private CreditResponseDTO toDTO(Credit c) {
-        return new CreditResponseDTO(
-                c.getId(),
-                c.getMontantAccorde(),
-                c.getMontantTotal(),
-                c.getMontantRestant(),
-                c.getTauxRemboursement(),
-                c.getDateDebut(),
-                c.getDateFin(),
-                c.getStatut(),
-                c.getModeRemboursement(),
-                c.getClient().getId(),
-                c.getDemandeCredit().getId(),
-                c.getCreatedAt(),
-                c.getUpdatedAt()
-        );
     }
 
     private void generateEcheances(Credit credit) {

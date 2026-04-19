@@ -51,6 +51,24 @@ public class EvaluationRisque {
     @JoinColumn(name = "demande_credit_id", nullable = false)
     private DemandeCredit demandeCredit;
 
+    private Double scoreBase;
+    private Double scoreConservateur;
+    private Double probabiliteDefautBase;
+    private Double probabiliteDefautConservative;
+    private Double mcStd;
+    private Double var95;
+    private Double var99;
+    private Double cvar95;
+    private Double ci95Lower;
+    private Double ci95Upper;
+    private Boolean highUncertainty;
+    private String riskClassBase;
+    private String riskClassConservative;
+    private String scoreBandBase;
+    private String scoreBandConservative;
+    private String decisionBase;
+    private String decisionConservative;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 

@@ -40,6 +40,13 @@ public class SecurityConfig {
                         .requestMatchers("/api/cart/**").permitAll()
                         .requestMatchers("/api/products/**").permitAll()
                         .requestMatchers("/api/categories/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/profils-credit/me").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/profils-credit/me").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/profils-credit/me").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/demandes").authenticated()
+                        .requestMatchers("/api/evaluations/**").authenticated()
+                        .requestMatchers("/api/profils-credit/by-client").authenticated()
+
                         .anyRequest().permitAll()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
