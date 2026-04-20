@@ -23,8 +23,8 @@ public class Payment {
     /* ================= RELATION ================= */
 
     @NotNull(message = "order is required")
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", nullable = false)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", nullable = false, unique = true)
     private Order order;
 
     /* ================= PAYMENT DATA ================= */

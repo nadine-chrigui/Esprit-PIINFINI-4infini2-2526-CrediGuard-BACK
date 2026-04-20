@@ -1,9 +1,13 @@
 package tn.esprit.pi_back.dto;
-import lombok.*;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
 @AllArgsConstructor
-public class AuthResponse
-{
+public class AuthResponse {
     private String accessToken;
+    private AuthUserDto user;
 }

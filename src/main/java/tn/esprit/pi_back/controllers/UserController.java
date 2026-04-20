@@ -3,6 +3,7 @@ package tn.esprit.pi_back.controllers;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import tn.esprit.pi_back.dto.ClientOptionDTO;
 import tn.esprit.pi_back.dto.ProfileResponse;
@@ -19,40 +20,51 @@ import java.util.List;
 @RequestMapping("/users")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
+public class UserController {
 
-public class UserController
-{
     private final UserService userService;
-
     private final UserRepository userRepository;
-    // CREATE
+
     @PostMapping
-    public ResponseEntity<User> create( @Valid @RequestBody User user) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<User> create(@Valid @RequestBody User user) {
         return ResponseEntity.ok(userService.create(user));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<User> update(@PathVariable Long id, @Valid @RequestBody UpdateUserRequest request) {
         return ResponseEntity.ok(userService.update(id, request));
     }
-    // GET BY ID
+
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<User> getById(@PathVariable Long id) {
         return ResponseEntity.ok(userService.getById(id));
     }
 
-    // GET ALL
     @GetMapping
-    public ResponseEntity<List<User>> getAll() {
-        return ResponseEntity.ok(userService.getAll());
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<User>> getAll(
+            @RequestParam(required = false) Boolean enabled,
+            @RequestParam(required = false) UserType userType
+    ) {
+        return ResponseEntity.ok(userService.getAll(enabled, userType));
     }
 
-    // DELETE
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         userService.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PatchMapping("/{id}/enabled")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<User> updateEnabled(@PathVariable Long id, @RequestParam Boolean enabled) {
+        return ResponseEntity.ok(userService.updateEnabled(id, enabled));
+    }
+
     @GetMapping("/me")
     public ResponseEntity<ProfileResponse> getMyProfile() {
         return ResponseEntity.ok(userService.getMyProfile());
@@ -62,6 +74,7 @@ public class UserController
     public ResponseEntity<ProfileResponse> updateMyProfile(@Valid @RequestBody UpdateProfileRequest request) {
         return ResponseEntity.ok(userService.updateMyProfile(request));
     }
+
     @GetMapping("/clients")
     public List<ClientOptionDTO> getClients() {
         return userRepository.findByUserType(UserType.CLIENT)
@@ -73,5 +86,4 @@ public class UserController
                 ))
                 .toList();
     }
-
 }

@@ -7,6 +7,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -22,6 +23,7 @@ import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
@@ -34,12 +36,23 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                        .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/uploads/**").permitAll()
+
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
                         .requestMatchers("/api/projects/**").hasAnyRole("ADMIN", "PARTNER")
+
                         .requestMatchers("/api/cart/**").permitAll()
                         .requestMatchers("/api/products/**").permitAll()
                         .requestMatchers("/api/categories/**").permitAll()
+
+                        .requestMatchers(HttpMethod.GET, "/products").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/products/*").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/products/seller/*").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/categories/**").permitAll()
+
                         .requestMatchers(HttpMethod.GET, "/api/profils-credit/me").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/profils-credit/me").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/profils-credit/me").authenticated()
@@ -58,7 +71,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("http://localhost:4200"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 

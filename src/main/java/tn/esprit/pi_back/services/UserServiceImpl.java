@@ -1,6 +1,5 @@
 package tn.esprit.pi_back.services;
 
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -70,10 +69,28 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public List<User> getAll(Boolean enabled, UserType userType) {
+        if (enabled != null && userType != null) {
+            return userRepository.findByEnabledAndUserTypeOrderByCreatedAtDesc(enabled, userType);
+        }
+
+        if (enabled != null) {
+            return userRepository.findByEnabledOrderByCreatedAtDesc(enabled);
+        }
+
+        if (userType != null) {
+            return userRepository.findByUserTypeOrderByCreatedAtDesc(userType);
+        }
+
+        return userRepository.findAll();
+    }
+
+    @Override
     public void delete(Long id) {
         User existing = getById(id);
         userRepository.delete(existing);
     }
+
     @Override
     public User getOrCreateCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -94,9 +111,9 @@ public class UserServiceImpl implements UserService {
                     User u = new User();
                     u.setEmail(email);
                     u.setFullName(fullName);
-                    u.setUserType(UserType.CLIENT);  // ✅ adapte au bon enum
+                    u.setUserType(UserType.CLIENT);
                     u.setPassword(passwordEncoder.encode("12345678"));
-                    u.setEnabled(true); // si tu as ce champ
+                    u.setEnabled(true);
                     return userRepository.save(u);
                 });
     }
@@ -105,7 +122,6 @@ public class UserServiceImpl implements UserService {
     public User getCurrentUserOrThrow() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        // ✅ DEV fallback READ-ONLY (aucun insert ici)
         if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
             return userRepository.findByEmail("test@test.tn")
                     .orElseThrow(() -> new SecurityException(
@@ -117,6 +133,7 @@ public class UserServiceImpl implements UserService {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new SecurityException("Unauthorized: user not found in DB"));
     }
+
     @Override
     public ProfileResponse getMyProfile() {
         User user = getCurrentUserOrThrow();
@@ -157,4 +174,20 @@ public class UserServiceImpl implements UserService {
         );
     }
 
+    @Override
+    public User updateEnabled(Long id, Boolean enabled) {
+        if (enabled == null) {
+            throw new IllegalArgumentException("enabled is required");
+        }
+
+        User existing = getById(id);
+        User currentUser = getCurrentUserOrThrow();
+
+        if (Boolean.FALSE.equals(enabled) && currentUser.getId().equals(existing.getId())) {
+            throw new IllegalArgumentException("Admin cannot disable the currently authenticated account.");
+        }
+
+        existing.setEnabled(enabled);
+        return userRepository.save(existing);
+    }
 }

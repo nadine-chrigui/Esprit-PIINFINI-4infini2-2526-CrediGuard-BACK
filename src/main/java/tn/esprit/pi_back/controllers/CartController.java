@@ -8,7 +8,7 @@ import tn.esprit.pi_back.dto.cart.*;
 import tn.esprit.pi_back.services.CartService;
 
 @RestController
-@RequestMapping("/api/cart")
+@RequestMapping("/cart")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class CartController {
