@@ -11,6 +11,7 @@ public class LoginResponse {
     private boolean requiresTwoFactor;
     private String accessToken;
     private String message;
+    private Long id;
     private String email;
     private String userType;
     private AuthUserDto user;

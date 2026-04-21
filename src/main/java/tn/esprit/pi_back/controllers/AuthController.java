@@ -64,6 +64,7 @@ public class AuthController {
                     true,
                     null,
                     "OTP sent to your email",
+                    user.getId(),
                     user.getEmail(),
                     user.getUserType() != null ? user.getUserType().name() : null,
                     toAuthUserDto(user)
@@ -76,6 +77,7 @@ public class AuthController {
                 false,
                 token,
                 "Login successful",
+                user.getId(),
                 user.getEmail(),
                 user.getUserType() != null ? user.getUserType().name() : null,
                 toAuthUserDto(user)

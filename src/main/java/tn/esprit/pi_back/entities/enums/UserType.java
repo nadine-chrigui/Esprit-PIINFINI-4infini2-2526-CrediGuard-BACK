@@ -4,6 +4,7 @@ public enum UserType {
     ADMIN,
     BENEFICIARY,
     PARTNER,
-    CLIENT
+    CLIENT,
+
 }
 
