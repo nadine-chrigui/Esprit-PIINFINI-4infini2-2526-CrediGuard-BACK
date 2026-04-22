@@ -26,4 +26,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByUserTypeOrderByCreatedAtDesc(UserType userType);
 
     List<User> findByEnabledAndUserTypeOrderByCreatedAtDesc(Boolean enabled, UserType userType);
+    long countByUserType(UserType userType);
+
 }

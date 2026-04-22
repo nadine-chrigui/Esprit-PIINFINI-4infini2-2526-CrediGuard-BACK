@@ -14,7 +14,7 @@
     <groupId>tn.esprit</groupId>
     <artifactId>Pi_back</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <n>Pi_back</n>
+    <name>Pi_back</name>
     <description>Pi_back</description>
 
     <properties>

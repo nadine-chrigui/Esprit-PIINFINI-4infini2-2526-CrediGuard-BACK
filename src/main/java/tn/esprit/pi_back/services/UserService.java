@@ -31,4 +31,6 @@ public interface UserService {
         List<User> getAll(Boolean enabled, UserType userType);
 
         User updateEnabled(Long id, Boolean enabled);
+    List<User> getPartners();
+    List<User> getPartnersByType(tn.esprit.pi_back.entities.enums.PartnerType partnerType);
 }
