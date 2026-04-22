@@ -11,6 +11,7 @@ import tn.esprit.pi_back.dto.UpdateProfileRequest;
 import tn.esprit.pi_back.dto.UpdateUserRequest;
 import tn.esprit.pi_back.entities.User;
 import tn.esprit.pi_back.entities.enums.UserType;
+import tn.esprit.pi_back.entities.enums.PartnerType;
 import tn.esprit.pi_back.repositories.UserRepository;
 import tn.esprit.pi_back.services.UserService;
 
@@ -47,8 +48,7 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<User>> getAll(
             @RequestParam(required = false) Boolean enabled,
-            @RequestParam(required = false) UserType userType
-    ) {
+            @RequestParam(required = false) UserType userType) {
         return ResponseEntity.ok(userService.getAll(enabled, userType));
     }
 
@@ -75,15 +75,26 @@ public class UserController {
         return ResponseEntity.ok(userService.updateMyProfile(request));
     }
 
+    @GetMapping("/me-full")
+    public ResponseEntity<User> getCurrentUserFull() {
+        return ResponseEntity.ok(userService.getCurrentUserOrThrow());
+    }
+
     @GetMapping("/clients")
     public List<ClientOptionDTO> getClients() {
         return userRepository.findByUserType(UserType.CLIENT)
                 .stream()
-                .map(user -> new ClientOptionDTO(
-                        user.getId(),
-                        user.getFullName(),
-                        user.getEmail()
-                ))
+                .map(user -> new ClientOptionDTO(user.getId(), user.getFullName(), user.getEmail()))
                 .toList();
+    }
+
+    @GetMapping("/partners")
+    public ResponseEntity<List<User>> getPartners() {
+        return ResponseEntity.ok(userService.getPartners());
+    }
+
+    @GetMapping("/partners/type/{type}")
+    public ResponseEntity<List<User>> getPartnersByType(@PathVariable String type) {
+        return ResponseEntity.ok(userService.getPartnersByType(PartnerType.valueOf(type)));
     }
 }

@@ -8,12 +8,9 @@ import tn.esprit.pi_back.entities.enums.ClaimStatus;
 import java.time.LocalDateTime;
 
 @Entity
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@ToString
-@EqualsAndHashCode
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor
+@ToString @EqualsAndHashCode
 public class InsuranceClaim {
 
     @Id
@@ -29,13 +26,10 @@ public class InsuranceClaim {
     @Column(nullable = false, length = 20)
     private ClaimStatus status = ClaimStatus.PENDING;
 
-    // motif si REJECTED
     private String reason;
-
     private LocalDateTime createdAt;
     private LocalDateTime decidedAt;
 
-    // 1 voucher -> 0..1 claim
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "voucher_id", unique = true, nullable = false)
     private Voucher voucher;
@@ -43,6 +37,12 @@ public class InsuranceClaim {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "policy_id", nullable = false)
     private InsurancePolicy insurancePolicy;
+
+    @Column(nullable = false)
+    private int riskScore;
+
+    @Column(length = 20)
+    private String analysis;
 
     @PrePersist
     void onCreate() {
