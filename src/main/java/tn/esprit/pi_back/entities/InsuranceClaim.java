@@ -36,8 +36,8 @@ public class InsuranceClaim {
     private LocalDateTime decidedAt;
 
     // 1 voucher -> 0..1 claim
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "voucher_id", unique = true, nullable = false)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "voucher_id", unique = true)
     private Voucher voucher;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

@@ -10,10 +10,10 @@ public class InsurancePolicyMapper {
                 p.getPolicyNumber(),
                 p.getStartDate(),
                 p.getEndDate(),
-                new InsuranceCompanyMiniDTO(
+                p.getInsuranceCompany() != null ? new InsuranceCompanyMiniDTO(
                         p.getInsuranceCompany().getId(),
                         p.getInsuranceCompany().getName()
-                ),
+                ) : null,
                 UserMapper.toClientDTO(p.getClient())
         );
     }

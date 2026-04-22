@@ -15,6 +15,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/insurance/policies")
+@lombok.extern.slf4j.Slf4j
 public class InsurancePolicyRestController {
 
     private final IInsurancePolicyService service;
@@ -104,11 +105,12 @@ public class InsurancePolicyRestController {
 // =========================
     @GetMapping("/by-client/{clientId}")
     public List<InsurancePolicyDTO> getByClient(@PathVariable Long clientId) {
+        log.info("Request to get policies for client: {}", clientId);
 
         List<InsurancePolicy> policies = service.getPoliciesByUserId(clientId);
 
-        if (policies == null || policies.isEmpty()) {
-            throw new ResponseStatusException(NOT_FOUND, "No policies found for this client");
+        if (policies == null) {
+            return java.util.Collections.emptyList();
         }
 
         return policies.stream()

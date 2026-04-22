@@ -3,9 +3,11 @@ package tn.esprit.pi_back.services;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import tn.esprit.pi_back.entities.InsuranceCompany;
+import tn.esprit.pi_back.entities.InsuranceOffer;
 import tn.esprit.pi_back.entities.InsurancePolicy;
 import tn.esprit.pi_back.entities.User;
 import tn.esprit.pi_back.repositories.InsuranceCompanyRepository;
+import tn.esprit.pi_back.repositories.InsuranceOfferRepository;
 import tn.esprit.pi_back.repositories.InsurancePolicyRepository;
 import tn.esprit.pi_back.repositories.UserRepository;
 
@@ -18,12 +20,27 @@ public class InsurancePolicyServiceImpl implements IInsurancePolicyService {
     private final InsurancePolicyRepository policyRepo;
     private final InsuranceCompanyRepository companyRepo;
     private final UserRepository userRepo;
+    private final InsuranceOfferRepository offerRepo;
 
     @Override
     public InsurancePolicy addAndAssign(Long idCompany, Long idClient, InsurancePolicy policy) {
         InsuranceCompany company = companyRepo.findById(idCompany).orElse(null);
         User client = userRepo.findById(idClient).orElse(null);
+        
         if (company == null || client == null) return null;
+
+        // Ensure we have a valid offer (pick from DB if one is already in the object)
+        if (policy.getInsuranceOffer() != null && policy.getInsuranceOffer().getId() != null) {
+            policy.setInsuranceOffer(offerRepo.findById(policy.getInsuranceOffer().getId()).orElse(null));
+        }
+
+        // Fallback: If no offer is set, pick the first available for this company
+        if (policy.getInsuranceOffer() == null) {
+            List<InsuranceOffer> offers = offerRepo.findByInsuranceCompanyId(idCompany);
+            if (!offers.isEmpty()) {
+                policy.setInsuranceOffer(offers.get(0));
+            }
+        }
 
         policy.setInsuranceCompany(company);
         policy.setClient(client);
