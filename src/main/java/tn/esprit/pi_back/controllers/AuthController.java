@@ -4,7 +4,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import tn.esprit.pi_back.dto.*;
@@ -13,10 +12,8 @@ import tn.esprit.pi_back.repositories.UserRepository;
 import tn.esprit.pi_back.security.JwtService;
 import tn.esprit.pi_back.services.EmailService;
 import tn.esprit.pi_back.services.PasswordResetService;
-import tn.esprit.pi_back.dto.VerifyOtpRequest;
 
 import java.time.LocalDateTime;
-
 
 @RestController
 @RequestMapping("/auth")
@@ -28,11 +25,11 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
-
     private final EmailService emailService;
+    private final PasswordResetService passwordResetService;
+
     @PostMapping("/register")
-    public User register(@Valid @RequestBody User user)
-    {
+    public User register(@Valid @RequestBody User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
@@ -67,9 +64,10 @@ public class AuthController {
                     true,
                     null,
                     "OTP sent to your email",
+                    user.getId(),
                     user.getEmail(),
-                    user.getUserType().name(),
-                    user.getId()
+                    user.getUserType() != null ? user.getUserType().name() : null,
+                    toAuthUserDto(user)
             );
         }
 
@@ -79,14 +77,12 @@ public class AuthController {
                 false,
                 token,
                 "Login successful",
+                user.getId(),
                 user.getEmail(),
-                user.getUserType().name(),
-                user.getId() // 🔥 IMPORTANT
+                user.getUserType() != null ? user.getUserType().name() : null,
+                toAuthUserDto(user)
         );
     }
-
-
-    private final PasswordResetService passwordResetService;
 
     @PostMapping("/forgot-password")
     public ForgotPasswordResponse forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
@@ -121,12 +117,12 @@ public class AuthController {
         userRepository.save(user);
 
         String token = jwtService.generateToken(user.getEmail());
-        return new AuthResponse(token);
+        return new AuthResponse(token, toAuthUserDto(user));
     }
 
     @PostMapping("/enable-2fa")
-    public TwoFactorToggleResponse enable2fa(@RequestParam String email) {
-        User user = userRepository.findByEmail(email)
+    public TwoFactorToggleResponse enable2fa(@Valid @RequestBody TwoFactorRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         user.setTwoFactorEnabled(true);
@@ -136,8 +132,8 @@ public class AuthController {
     }
 
     @PostMapping("/disable-2fa")
-    public TwoFactorToggleResponse disable2fa(@RequestParam String email) {
-        User user = userRepository.findByEmail(email)
+    public TwoFactorToggleResponse disable2fa(@Valid @RequestBody TwoFactorRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         user.setTwoFactorEnabled(false);
@@ -147,9 +143,10 @@ public class AuthController {
 
         return new TwoFactorToggleResponse("2FA disabled successfully", false);
     }
-    @GetMapping("/2fa-status")
-    public TwoFactorToggleResponse get2faStatus(@RequestParam String email) {
-        User user = userRepository.findByEmail(email)
+
+    @PostMapping("/2fa-status")
+    public TwoFactorToggleResponse get2faStatus(@Valid @RequestBody TwoFactorRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         return new TwoFactorToggleResponse(
@@ -158,4 +155,12 @@ public class AuthController {
         );
     }
 
+    private AuthUserDto toAuthUserDto(User user) {
+        return new AuthUserDto(
+                user.getId(),
+                user.getEmail(),
+                user.getUserType(),
+                user.getUserType() != null ? user.getUserType().name() : null
+        );
+    }
 }

@@ -1,12 +1,18 @@
 package tn.esprit.pi_back.services;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tn.esprit.pi_back.dto.product.*;
+import tn.esprit.pi_back.dto.product.ProductCreateRequest;
+import tn.esprit.pi_back.dto.product.ProductResponse;
+import tn.esprit.pi_back.dto.product.ProductUpdateRequest;
+import tn.esprit.pi_back.dto.promotion.ProductPriceView;
 import tn.esprit.pi_back.entities.Category;
 import tn.esprit.pi_back.entities.Product;
 import tn.esprit.pi_back.entities.User;
+import tn.esprit.pi_back.entities.enums.UserType;
+import tn.esprit.pi_back.mappers.ProductMapper;
 import tn.esprit.pi_back.repositories.CategoryRepository;
 import tn.esprit.pi_back.repositories.ProductRepository;
 
@@ -19,151 +25,183 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
-    private final UserService userService; // doit exposer getOrCreateCurrentUser()
+    private final UserService userService;
+    private final ProductMapper productMapper;
+    private final PromotionService promotionService;
 
     @Override
     public ProductResponse create(ProductCreateRequest req) {
-        User me = userService.getOrCreateCurrentUser();
+        User me = getAuthorizedSeller();
 
         Category category = categoryRepository.findById(req.categoryId())
                 .orElseThrow(() -> new IllegalArgumentException("Category not found: " + req.categoryId()));
 
-        Product p = new Product();
-        p.setSeller(me);
-        p.setCategory(category);
+        Product product = productMapper.toEntity(req, me, category);
+        Product saved = productRepository.save(product);
 
-        p.setName(req.name().trim());
-        p.setDescription(req.description());
-
-        p.setBasePrice(req.basePrice());
-        p.setCurrentPrice(req.basePrice()); // safe
-        p.setDynamicPricingEnabled(req.dynamicPricingEnabled() != null && req.dynamicPricingEnabled());
-        p.setPricingStrategy(req.pricingStrategy());
-
-        p.setSaleType(req.saleType());
-        p.setStockQuantity(req.stockQuantity());
-        p.setPreorderQuota(req.preorderQuota());
-        p.setPaymentMode(req.paymentMode());
-        p.setDepositPercentage(req.depositPercentage());
-
-        p.setExpressDeliveryAvailable(req.expressDeliveryAvailable() != null && req.expressDeliveryAvailable());
-        p.setExpressDeliveryFee(req.expressDeliveryFee());
-
-        p.setPreorderStartDate(req.preorderStartDate());
-        p.setPreorderEndDate(req.preorderEndDate());
-        p.setExpectedReleaseDate(req.expectedReleaseDate());
-
-        Product saved = productRepository.save(p);
-        return toResponse(saved);
+        return enrich(saved);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ProductResponse> getAll() {
-        return productRepository.findAll().stream().map(this::toResponse).toList();
+        return productRepository.findByActiveTrue()
+                .stream()
+                .map(this::enrich)
+                .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
     public ProductResponse getById(Long id) {
-        Product p = productRepository.findById(id)
+        Product product = productRepository.findByIdAndActiveTrue(id)
                 .orElseThrow(() -> new IllegalArgumentException("Product not found: " + id));
-        return toResponse(p);
+
+        return enrich(product);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ProductResponse> getMine() {
-        User me = userService.getOrCreateCurrentUser();
-        return productRepository.findBySellerId(me.getId()).stream().map(this::toResponse).toList();
+        User me = getAuthorizedSeller();
+
+        return productRepository.findBySellerIdAndActiveTrue(me.getId())
+                .stream()
+                .map(this::enrich)
+                .toList();
     }
 
     @Override
     public ProductResponse update(Long id, ProductUpdateRequest req) {
-        User me = userService.getOrCreateCurrentUser();
+        User me = getAuthorizedSeller();
 
-        Product p = productRepository.findById(id)
+        Product product = productRepository.findByIdAndActiveTrue(id)
                 .orElseThrow(() -> new IllegalArgumentException("Product not found: " + id));
 
-        if (!p.getSeller().getId().equals(me.getId())) {
-            throw new SecurityException("Forbidden: you are not the owner of this product.");
-        }
+        validateOwnership(product, me);
 
+        Category category = null;
         if (req.categoryId() != null) {
-            Category category = categoryRepository.findById(req.categoryId())
+            category = categoryRepository.findById(req.categoryId())
                     .orElseThrow(() -> new IllegalArgumentException("Category not found: " + req.categoryId()));
-            p.setCategory(category);
         }
 
-        if (req.name() != null) p.setName(req.name().trim());
-        if (req.description() != null) p.setDescription(req.description());
+        productMapper.updateEntity(product, req, category);
 
-        if (req.basePrice() != null) p.setBasePrice(req.basePrice());
-        if (req.currentPrice() != null) p.setCurrentPrice(req.currentPrice());
-
-        if (req.dynamicPricingEnabled() != null) p.setDynamicPricingEnabled(req.dynamicPricingEnabled());
-        if (req.pricingStrategy() != null) p.setPricingStrategy(req.pricingStrategy());
-
-        if (req.saleType() != null) p.setSaleType(req.saleType());
-
-        if (req.stockQuantity() != null) p.setStockQuantity(req.stockQuantity());
-        if (req.preorderQuota() != null) p.setPreorderQuota(req.preorderQuota());
-
-        if (req.paymentMode() != null) p.setPaymentMode(req.paymentMode());
-        if (req.depositPercentage() != null) p.setDepositPercentage(req.depositPercentage());
-
-        if (req.expressDeliveryAvailable() != null) p.setExpressDeliveryAvailable(req.expressDeliveryAvailable());
-        if (req.expressDeliveryFee() != null) p.setExpressDeliveryFee(req.expressDeliveryFee());
-
-        if (req.preorderStartDate() != null) p.setPreorderStartDate(req.preorderStartDate());
-        if (req.preorderEndDate() != null) p.setPreorderEndDate(req.preorderEndDate());
-        if (req.expectedReleaseDate() != null) p.setExpectedReleaseDate(req.expectedReleaseDate());
-
-        if (req.active() != null) p.setActive(req.active());
-
-        return toResponse(p);
+        Product saved = productRepository.save(product);
+        return enrich(saved);
     }
 
     @Override
     public void delete(Long id) {
-        User me = userService.getOrCreateCurrentUser();
+        User me = getAuthorizedSeller();
 
-        Product p = productRepository.findById(id)
+        Product product = productRepository.findByIdAndActiveTrue(id)
                 .orElseThrow(() -> new IllegalArgumentException("Product not found: " + id));
 
-        if (!p.getSeller().getId().equals(me.getId())) {
-            throw new SecurityException("Forbidden: you are not the owner of this product.");
-        }
+        validateOwnership(product, me);
 
-        // soft delete recommandé
-        p.setActive(false);
+        product.setActive(false);
+        productRepository.save(product);
     }
 
-    private ProductResponse toResponse(Product p) {
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProductResponse> getBySellerId(Long sellerId) {
+        return productRepository.findBySellerIdAndActiveTrue(sellerId)
+                .stream()
+                .map(this::enrich)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProductResponse> getAllAdmin(Boolean active) {
+        List<Product> products;
+
+        if (active == null) {
+            products = productRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
+        } else {
+            products = productRepository.findByActiveOrderByCreatedAtDesc(active);
+        }
+
+        return products.stream()
+                .map(this::enrich)
+                .toList();
+    }
+
+    @Override
+    public ProductResponse updateActiveAdmin(Long id, boolean active) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Product not found: " + id));
+
+        product.setActive(active);
+        Product saved = productRepository.save(product);
+        return enrich(saved);
+    }
+
+    private ProductResponse enrich(Product product) {
+        ProductResponse base = productMapper.toResponse(product);
+        ProductPriceView priceView = promotionService.calculateProductPrice(product, null);
+
         return new ProductResponse(
-                p.getId(),
-                p.getSeller() != null ? p.getSeller().getId() : null,
-                p.getCategory() != null ? p.getCategory().getId() : null,
-                p.getName(),
-                p.getDescription(),
-                p.getBasePrice(),
-                p.getCurrentPrice(),
-                p.isDynamicPricingEnabled(),
-                p.getPricingStrategy(),
-                p.getSaleType(),
-                p.getStockQuantity(),
-                p.getPreorderQuota(),
-                p.getPreorderCount(),
-                p.getPaymentMode(),
-                p.getDepositPercentage(),
-                p.isExpressDeliveryAvailable(),
-                p.getExpressDeliveryFee(),
-                p.getPreorderStartDate(),
-                p.getPreorderEndDate(),
-                p.getExpectedReleaseDate(),
-                p.isActive(),
-                p.getCreatedAt(),
-                p.getUpdatedAt()
+                base.id(),
+                base.sellerId(),
+                base.sellerName(),
+                base.categoryId(),
+                base.categoryName(),
+                base.name(),
+                base.description(),
+                base.basePrice(),
+                base.currentPrice(),
+                base.dynamicPricingEnabled(),
+                base.pricingStrategy(),
+                base.saleType(),
+                base.stockQuantity(),
+                base.preorderQuota(),
+                base.preorderCount(),
+                base.paymentMode(),
+                base.depositPercentage(),
+                base.expressDeliveryAvailable(),
+                base.expressDeliveryFee(),
+                base.preorderStartDate(),
+                base.preorderEndDate(),
+                base.expectedReleaseDate(),
+                base.active(),
+                base.createdAt(),
+                base.updatedAt(),
+                base.imageUrl(),
+                priceView.originalPrice(),
+                priceView.finalPrice(),
+                priceView.discountAmount(),
+                priceView.promotionApplied(),
+                priceView.promotionName()
         );
+    }
+
+    private User getAuthorizedSeller() {
+        User me = userService.getCurrentUserOrThrow();
+
+        if (me.getUserType() != UserType.ADMIN
+                && me.getUserType() != UserType.BENEFICIARY
+                && me.getUserType() != UserType.PARTNER) {
+            throw new SecurityException("Only ADMIN, BENEFICIARY or PARTNER can manage products.");
+        }
+
+        return me;
+    }
+
+    private void validateOwnership(Product product, User me) {
+        if (product.getSeller() == null || product.getSeller().getId() == null) {
+            throw new SecurityException("This product has no valid seller.");
+        }
+
+        if (me.getUserType() == UserType.ADMIN) {
+            return;
+        }
+
+        if (!product.getSeller().getId().equals(me.getId())) {
+            throw new SecurityException("Forbidden: you are not the owner of this product.");
+        }
     }
 }

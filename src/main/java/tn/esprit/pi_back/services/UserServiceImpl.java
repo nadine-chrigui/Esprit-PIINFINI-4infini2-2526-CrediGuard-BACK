@@ -1,6 +1,5 @@
 package tn.esprit.pi_back.services;
 
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -12,7 +11,6 @@ import tn.esprit.pi_back.dto.UpdateUserRequest;
 import tn.esprit.pi_back.entities.User;
 import tn.esprit.pi_back.entities.enums.UserType;
 import tn.esprit.pi_back.repositories.UserRepository;
-import tn.esprit.pi_back.entities.enums.PartnerType;
 
 import java.util.List;
 
@@ -40,25 +38,6 @@ public class UserServiceImpl implements UserService {
         userRepository.findByEmail(request.getEmail()).ifPresent(found -> {
             if (!found.getId().equals(id)) {
                 throw new RuntimeException("Email already exists: " + request.getEmail());
-            }
-            // 🔥 LOGIQUE PARTNER (AJOUTER ICI)
-            if (request.getUserType() == UserType.PARTNER) {
-
-                if (request.getPartnerType() == null) {
-                    throw new RuntimeException("PartnerType obligatoire");
-                }
-
-                existing.setPartnerType(request.getPartnerType());
-
-                if (request.getPartnerStatus() == null) {
-                    existing.setPartnerStatus(tn.esprit.pi_back.entities.enums.PartnerStatus.ACTIVE);
-                } else {
-                    existing.setPartnerStatus(request.getPartnerStatus());
-                }
-
-            } else {
-                existing.setPartnerType(null);
-                existing.setPartnerStatus(null);
             }
         });
 
@@ -90,10 +69,28 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public List<User> getAll(Boolean enabled, UserType userType) {
+        if (enabled != null && userType != null) {
+            return userRepository.findByEnabledAndUserTypeOrderByCreatedAtDesc(enabled, userType);
+        }
+
+        if (enabled != null) {
+            return userRepository.findByEnabledOrderByCreatedAtDesc(enabled);
+        }
+
+        if (userType != null) {
+            return userRepository.findByUserTypeOrderByCreatedAtDesc(userType);
+        }
+
+        return userRepository.findAll();
+    }
+
+    @Override
     public void delete(Long id) {
         User existing = getById(id);
         userRepository.delete(existing);
     }
+
     @Override
     public User getOrCreateCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -114,9 +111,9 @@ public class UserServiceImpl implements UserService {
                     User u = new User();
                     u.setEmail(email);
                     u.setFullName(fullName);
-                    u.setUserType(UserType.CLIENT);  // ✅ adapte au bon enum
+                    u.setUserType(UserType.CLIENT);
                     u.setPassword(passwordEncoder.encode("12345678"));
-                    u.setEnabled(true); // si tu as ce champ
+                    u.setEnabled(true);
                     return userRepository.save(u);
                 });
     }
@@ -125,19 +122,18 @@ public class UserServiceImpl implements UserService {
     public User getCurrentUserOrThrow() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        if (auth == null
-                || !auth.isAuthenticated()
-                || "anonymousUser".equals(auth.getName())) {  // 🔥 AJOUT
-            throw new SecurityException("Unauthorized: no authenticated user");
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            return userRepository.findByEmail("test@test.tn")
+                    .orElseThrow(() -> new SecurityException(
+                            "Unauthorized: no authenticated user. Create the test user first by calling POST /api/products once (or login)."
+                    ));
         }
 
         String email = auth.getName();
-
-        System.out.println("JWT USER EMAIL: " + email); // 🔥 DEBUG
-
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new SecurityException("User not found in DB"));
+                .orElseThrow(() -> new SecurityException("Unauthorized: user not found in DB"));
     }
+
     @Override
     public ProfileResponse getMyProfile() {
         User user = getCurrentUserOrThrow();
@@ -177,15 +173,33 @@ public class UserServiceImpl implements UserService {
                 saved.isEnabled()
         );
     }
+
+    @Override
+    public User updateEnabled(Long id, Boolean enabled) {
+        if (enabled == null) {
+            throw new IllegalArgumentException("enabled is required");
+        }
+
+        User existing = getById(id);
+        User currentUser = getCurrentUserOrThrow();
+
+        if (Boolean.FALSE.equals(enabled) && currentUser.getId().equals(existing.getId())) {
+            throw new IllegalArgumentException("Admin cannot disable the currently authenticated account.");
+        }
+
+        existing.setEnabled(enabled);
+        return userRepository.save(existing);
+    }
     @Override
     public List<User> getPartners() {
         return userRepository.findByUserType(UserType.PARTNER);
     }
 
     @Override
-    public List<User> getPartnersByType(PartnerType type) {
-        return userRepository.findByUserTypeAndPartnerType(UserType.PARTNER, type);
+    public List<User> getPartnersByType(tn.esprit.pi_back.entities.enums.PartnerType partnerType) {
+        return userRepository.findByUserType(UserType.PARTNER)
+                .stream()
+                .filter(u -> partnerType.equals(u.getPartnerType()))
+                .toList();
     }
-
-
 }

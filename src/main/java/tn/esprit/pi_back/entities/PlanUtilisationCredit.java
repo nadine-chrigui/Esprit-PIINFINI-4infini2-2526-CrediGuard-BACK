@@ -10,8 +10,8 @@ import tn.esprit.pi_back.entities.enums.NatureActivite;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
-@EqualsAndHashCode
+@ToString(exclude = {"demandeCredit"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class PlanUtilisationCredit {
 
     @Id
