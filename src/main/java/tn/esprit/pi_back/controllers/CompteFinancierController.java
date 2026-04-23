@@ -10,7 +10,7 @@ import tn.esprit.pi_back.services.CompteFinancierService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/comptes-financiers")
+@RequestMapping("/comptes-financiers")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class CompteFinancierController {

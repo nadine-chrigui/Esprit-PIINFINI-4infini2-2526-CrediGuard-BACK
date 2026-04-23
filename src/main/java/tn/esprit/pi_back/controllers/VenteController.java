@@ -10,7 +10,7 @@ import tn.esprit.pi_back.services.VenteService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/ventes")
+@RequestMapping("/ventes")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class VenteController {

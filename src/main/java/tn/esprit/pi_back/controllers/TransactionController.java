@@ -10,7 +10,7 @@ import tn.esprit.pi_back.services.TransactionService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/transactions")
+@RequestMapping("/transactions")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class TransactionController {
