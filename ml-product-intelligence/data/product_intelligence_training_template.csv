@@ -1,0 +1,4 @@
+stock,sales_last_7_days,sales_last_30_days,price,risk_level,performance_score,performance_label,suggested_action
+20,35,120,50.0,HIGH,80,AT_RISK,RESTOCK
+100,1,2,35.0,LOW,30,SLOW_MOVING,PROMOTE
+60,10,40,120.0,MEDIUM,70,STABLE,MONITOR

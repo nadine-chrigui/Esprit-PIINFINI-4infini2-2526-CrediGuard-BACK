@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
     boolean existsByOrderId(Long orderId);
     Optional<Payment> findByOrderId(Long orderId);
+    Optional<Payment> findByStripeSessionId(String stripeSessionId);
     @Query("""
     select p.paymentType, count(p), coalesce(sum(p.amount), 0)
     from Payment p

@@ -1,6 +1,7 @@
 package tn.esprit.pi_back.services;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tn.esprit.pi_back.dto.Payment.PaymentResponse;
@@ -37,9 +38,19 @@ public class CheckoutServiceImpl implements CheckoutService {
     private final OrderMapper orderMapper;
     private final PaymentMapper paymentMapper;
     private final DeliveryService deliveryService;
+    private final DeliveryZoneService deliveryZoneService;
+    private final ProductIntelligenceService productIntelligenceService;
+
+    @Value("${stripe.secret-key:}")
+    private String stripeSecretKey;
 
     @Override
     public CheckoutResponse checkout(CheckoutRequest req) {
+        if (req.paymentType() == PaymentType.CARD
+                && (stripeSecretKey == null || stripeSecretKey.isBlank())) {
+            throw new IllegalStateException("Stripe secret key is not configured for card payments.");
+        }
+
         User me = userService.getCurrentUserOrThrow();
 
         Cart cart = cartRepository.findByUserIdAndStatus(me.getId(), CartStatus.ACTIVE)
@@ -94,9 +105,16 @@ public class CheckoutServiceImpl implements CheckoutService {
 
             validateStockForCheckout(product, cartItem.getQuantity());
 
-            ProductPriceView priceView = promotionService.calculateProductPrice(product, cartSubtotal);
+            Double negotiatedUnitPrice = cartItem.getNegotiatedUnitPrice();
 
-            double unitPrice = priceView.finalPrice();
+            double unitPrice;
+            if (negotiatedUnitPrice != null && negotiatedUnitPrice > 0) {
+                unitPrice = negotiatedUnitPrice;
+            } else {
+                ProductPriceView priceView = promotionService.calculateProductPrice(product, cartSubtotal);
+                unitPrice = priceView.finalPrice();
+            }
+
             int qty = cartItem.getQuantity();
             double lineTotal = unitPrice * qty;
 
@@ -136,7 +154,7 @@ public class CheckoutServiceImpl implements CheckoutService {
         }
 
         order.setItems(orderItems);
-        double deliveryFee = calculateDeliveryFee(req.deliveryType());
+        double deliveryFee = calculateDeliveryFee(address);
         double finalTotal = total + deliveryFee;
 
         order.setTotalAmount(round(finalTotal));
@@ -150,7 +168,7 @@ public class CheckoutServiceImpl implements CheckoutService {
         delivery.setDeliveryStatus(DeliveryStatus.PENDING);
         delivery.setDeliverySlot(req.deliverySlot());
         delivery.setScheduledAt(req.scheduledAt());
-        delivery.setDeliveryFee(calculateDeliveryFee(req.deliveryType()));
+        delivery.setDeliveryFee(calculateDeliveryFee(address));
 
         Delivery savedDelivery = deliveryRepository.save(delivery);
 
@@ -163,6 +181,7 @@ public class CheckoutServiceImpl implements CheckoutService {
         Payment savedPayment = paymentRepository.save(payment);
 
         reserveStock(savedOrder);
+        refreshProductIntelligence(savedOrder);
 
         cart.getItems().clear();
         cart.setStatus(CartStatus.CHECKED_OUT);
@@ -214,15 +233,31 @@ public class CheckoutServiceImpl implements CheckoutService {
         }
     }
 
-    private double calculateDeliveryFee(DeliveryType deliveryType) {
-        if (deliveryType == null) {
-            return 0.0;
+    private void refreshProductIntelligence(Order order) {
+        if (order == null || order.getItems() == null) {
+            return;
         }
 
-        return switch (deliveryType) {
-            case STANDARD -> 8.0;
-            case EXPRESS -> 15.0;
-        };
+        order.getItems().stream()
+                .map(OrderItem::getProduct)
+                .filter(product -> product != null && product.getId() != null)
+                .map(Product::getId)
+                .distinct()
+                .forEach(productId -> {
+                    try {
+                        productIntelligenceService.analyzeProduct(productId);
+                    } catch (RuntimeException ex) {
+                        // Product intelligence must never block checkout.
+                    }
+                });
+    }
+
+    private double calculateDeliveryFee(DeliveryAddress address) {
+        String area = address.getGovernorate() != null && !address.getGovernorate().isBlank()
+                ? address.getGovernorate()
+                : address.getCity();
+
+        return isGrandTunis(area) ? 6.0 : 8.0;
     }
 
     private void validatePromoCode(PromoCode promo, double total) {
@@ -253,5 +288,34 @@ public class CheckoutServiceImpl implements CheckoutService {
 
     private double round(double value) {
         return Math.round(value * 100.0) / 100.0;
+    }
+
+    private boolean isGrandTunis(String value) {
+        String normalized = normalize(value);
+        return normalized.equals("tunis")
+                || normalized.equals("ariana")
+                || normalized.equals("manouba")
+                || normalized.equals("ben arous")
+                || normalized.equals("ben arouss");
+    }
+
+    private String normalize(String value) {
+        if (value == null) return "";
+        return value.trim()
+                .toLowerCase()
+                .replace("â", "a")
+                .replace("à", "a")
+                .replace("ä", "a")
+                .replace("é", "e")
+                .replace("è", "e")
+                .replace("ê", "e")
+                .replace("ë", "e")
+                .replace("î", "i")
+                .replace("ï", "i")
+                .replace("ô", "o")
+                .replace("ö", "o")
+                .replace("û", "u")
+                .replace("ü", "u")
+                .replaceAll("\\s+", " ");
     }
 }

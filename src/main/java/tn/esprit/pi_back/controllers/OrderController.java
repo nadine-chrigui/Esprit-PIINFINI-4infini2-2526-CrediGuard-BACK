@@ -6,10 +6,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import tn.esprit.pi_back.dto.order.*;
 import tn.esprit.pi_back.entities.enums.OrderStatus;
 import tn.esprit.pi_back.services.OrderService;
@@ -36,7 +38,11 @@ public class OrderController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<List<OrderResponse>> getMine(org.springframework.security.core.Authentication authentication) {
+    public ResponseEntity<List<OrderResponse>> getMine(Authentication authentication) {
+        if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required");
+        }
+
         return ResponseEntity.ok(orderService.getMine(authentication.getName()));
     }
 
