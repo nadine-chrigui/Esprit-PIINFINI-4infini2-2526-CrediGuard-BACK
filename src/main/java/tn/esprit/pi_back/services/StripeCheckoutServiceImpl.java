@@ -19,6 +19,8 @@ import tn.esprit.pi_back.mappers.PaymentMapper;
 import tn.esprit.pi_back.repositories.OrderRepository;
 import tn.esprit.pi_back.repositories.PaymentRepository;
 
+import java.util.Locale;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -55,7 +57,8 @@ public class StripeCheckoutServiceImpl implements StripeCheckoutService {
             throw new IllegalStateException("Payment is already paid.");
         }
 
-        Stripe.apiKey = stripeSecretKey;
+        Stripe.apiKey = normalizedStripeSecretKey();
+        String currency = normalizedStripeCurrency();
 
         long amountInMinorUnit = Math.round(payment.getAmount() * 100);
         Order order = payment.getOrder();
@@ -72,7 +75,7 @@ public class StripeCheckoutServiceImpl implements StripeCheckoutService {
                                 .setQuantity(1L)
                                 .setPriceData(
                                         SessionCreateParams.LineItem.PriceData.builder()
-                                                .setCurrency(stripeCurrency.toLowerCase())
+                                                .setCurrency(currency)
                                                 .setUnitAmount(amountInMinorUnit)
                                                 .setProductData(
                                                         SessionCreateParams.LineItem.PriceData.ProductData.builder()
@@ -99,7 +102,7 @@ public class StripeCheckoutServiceImpl implements StripeCheckoutService {
     @Override
     public PaymentResponse confirmCheckoutSession(String sessionId) {
         ensureStripeConfigured();
-        Stripe.apiKey = stripeSecretKey;
+        Stripe.apiKey = normalizedStripeSecretKey();
 
         try {
             Session session = Session.retrieve(sessionId);
@@ -127,8 +130,32 @@ public class StripeCheckoutServiceImpl implements StripeCheckoutService {
     }
 
     private void ensureStripeConfigured() {
-        if (stripeSecretKey == null || stripeSecretKey.isBlank()) {
+        if (normalizedStripeSecretKey().isBlank()) {
             throw new IllegalStateException("Stripe secret key is not configured. Set STRIPE_SECRET_KEY or stripe.secret-key.");
         }
+    }
+
+    private String normalizedStripeSecretKey() {
+        return normalizeConfigValue(stripeSecretKey);
+    }
+
+    private String normalizedStripeCurrency() {
+        String currency = normalizeConfigValue(stripeCurrency);
+        return currency.isBlank() ? "usd" : currency.toLowerCase(Locale.ROOT);
+    }
+
+    private String normalizeConfigValue(String value) {
+        if (value == null) {
+            return "";
+        }
+
+        String normalized = value.trim();
+
+        if ((normalized.startsWith("\"") && normalized.endsWith("\""))
+                || (normalized.startsWith("'") && normalized.endsWith("'"))) {
+            normalized = normalized.substring(1, normalized.length() - 1).trim();
+        }
+
+        return normalized;
     }
 }

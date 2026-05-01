@@ -270,7 +270,9 @@ public class CartServiceImpl implements CartService {
                     lineTotal,
                     item.getSource() != null ? item.getSource().name() : CartItemSource.STANDARD.name(),
                     item.getSourceOfferId(),
-                    item.getNegotiatedUnitPrice()
+                    item.getNegotiatedUnitPrice(),
+                    product.isExpressDeliveryAvailable(),
+                    product.getExpressDeliveryFee()
             );
         }).toList();
 

@@ -15,5 +15,7 @@ public record CartItemResponse(
         Double lineTotal,
         String source,
         Long sourceOfferId,
-        Double negotiatedUnitPrice
+        Double negotiatedUnitPrice,
+        Boolean expressDeliveryAvailable,
+        Double expressDeliveryFee
 ) {}

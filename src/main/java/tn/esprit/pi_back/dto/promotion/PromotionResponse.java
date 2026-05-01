@@ -2,6 +2,7 @@ package tn.esprit.pi_back.dto.promotion;
 
 import tn.esprit.pi_back.entities.enums.DiscountType;
 import tn.esprit.pi_back.entities.enums.PromotionTargetType;
+import tn.esprit.pi_back.entities.enums.PromotionStatus;
 import tn.esprit.pi_back.entities.enums.PromotionType;
 
 import java.time.LocalDateTime;
@@ -16,6 +17,7 @@ public record PromotionResponse(
         Double discountValue,
         Double minOrderAmount,
         Double maxDiscountAmount,
+        PromotionStatus status,
         Boolean active,
         Integer priority,
         Boolean autoApply,

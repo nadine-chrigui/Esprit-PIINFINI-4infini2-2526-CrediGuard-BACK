@@ -154,7 +154,7 @@ public class CheckoutServiceImpl implements CheckoutService {
         }
 
         order.setItems(orderItems);
-        double deliveryFee = calculateDeliveryFee(address);
+        double deliveryFee = calculateDeliveryFee(address, req.deliveryType(), cart.getItems());
         double finalTotal = total + deliveryFee;
 
         order.setTotalAmount(round(finalTotal));
@@ -168,7 +168,7 @@ public class CheckoutServiceImpl implements CheckoutService {
         delivery.setDeliveryStatus(DeliveryStatus.PENDING);
         delivery.setDeliverySlot(req.deliverySlot());
         delivery.setScheduledAt(req.scheduledAt());
-        delivery.setDeliveryFee(calculateDeliveryFee(address));
+        delivery.setDeliveryFee(deliveryFee);
 
         Delivery savedDelivery = deliveryRepository.save(delivery);
 
@@ -252,12 +252,35 @@ public class CheckoutServiceImpl implements CheckoutService {
                 });
     }
 
-    private double calculateDeliveryFee(DeliveryAddress address) {
+    private double calculateDeliveryFee(DeliveryAddress address, DeliveryType deliveryType, List<CartItem> cartItems) {
         String area = address.getGovernorate() != null && !address.getGovernorate().isBlank()
                 ? address.getGovernorate()
                 : address.getCity();
 
-        return isGrandTunis(area) ? 6.0 : 8.0;
+        double baseFee = isGrandTunis(area) ? 6.0 : 8.0;
+
+        if (deliveryType != DeliveryType.EXPRESS) {
+            return baseFee;
+        }
+
+        double expressFee = cartItems.stream()
+                .mapToDouble(item -> calculateExpressFee(item.getProduct(), item.getQuantity()))
+                .sum();
+
+        return round(baseFee + expressFee);
+    }
+
+    private double calculateExpressFee(Product product, int quantity) {
+        if (product == null) {
+            throw new IllegalStateException("Cart item product is null");
+        }
+
+        if (!product.isExpressDeliveryAvailable()) {
+            throw new IllegalStateException("Express delivery is not available for product: " + product.getName());
+        }
+
+        double expressFee = product.getExpressDeliveryFee() != null ? product.getExpressDeliveryFee() : 0.0;
+        return expressFee * quantity;
     }
 
     private void validatePromoCode(PromoCode promo, double total) {

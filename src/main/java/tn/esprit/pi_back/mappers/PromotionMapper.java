@@ -18,6 +18,7 @@ public final class PromotionMapper {
                 promotion.getDiscountValue(),
                 promotion.getMinOrderAmount(),
                 promotion.getMaxDiscountAmount(),
+                promotion.getStatus(),
                 promotion.getActive(),
                 promotion.getPriority(),
                 promotion.getAutoApply(),
