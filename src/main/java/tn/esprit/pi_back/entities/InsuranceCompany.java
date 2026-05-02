@@ -24,4 +24,16 @@ public class InsuranceCompany {
     @NotBlank
     @Column(nullable = false, unique = true, length = 60)
     private String registrationNumber;
+
+    private String logoUrl;
+
+    @Column(length = 1000)
+    private String description;
+
+    @ElementCollection
+    private java.util.List<String> categories;
+
+    private Float reliabilityNote;
+
+    private boolean active = true;
 }

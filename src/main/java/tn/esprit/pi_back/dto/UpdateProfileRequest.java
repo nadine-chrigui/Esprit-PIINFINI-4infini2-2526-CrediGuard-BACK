@@ -16,8 +16,12 @@ public class UpdateProfileRequest {
     private String email;
 
     @Pattern(
-            regexp = "^(\\+216)?[24579][0-9]{7}$",
-            message = "phone must be a valid Tunisian number: 20123456 or +21620123456"
+            regexp = "^(\\+216)?\\d+$|^$",
+            message = "phone must be a valid number"
     )
     private String phone;
+
+    private String sector;
+    private String activityType;
+    private String region;
 }

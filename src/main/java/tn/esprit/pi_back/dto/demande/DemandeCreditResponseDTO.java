@@ -18,6 +18,7 @@ public record DemandeCreditResponseDTO(
         Long clientId,
         String clientName,
         Long voucherId,
+        String voucherCode,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {}

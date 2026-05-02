@@ -15,6 +15,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/insurance/policies")
+@CrossOrigin("*")
 @lombok.extern.slf4j.Slf4j
 public class InsurancePolicyRestController {
 

@@ -52,9 +52,13 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     private PartnerStatus partnerStatus;
 
-    @Pattern(regexp = "^[24579][0-9]{7}$", message = "phone must be a valid Tunisian number (8 digits)")
+    @Pattern(regexp = "^(\\+216)?\\d+$|^$", message = "phone must be a valid number")
     @Column(name = "phone")
     private String phone;
+
+    private String sector; // e.g., AGRICULTURE, INDUSTRY, SERVICES
+    private String region; // e.g., TUNIS, SOUSSE, SFAX
+    private String activityType; // e.g., TRANSPORT, COMMERCE
 
     @Column(name = "enabled", nullable = false, columnDefinition = "bit default 1")
     private Boolean enabled;

@@ -13,6 +13,9 @@ public class InsurancePolicyDTO {
     private String policyNumber;
     private LocalDate startDate;
     private LocalDate endDate;
-    private InsuranceCompanyMiniDTO company;
+    private InsuranceCompanyMiniDTO insuranceCompany;
     private ClientDTO client;
-}
+    private String status;
+    private Double premiumAmount;
+    private InsuranceOfferDTO insuranceOffer;
+}

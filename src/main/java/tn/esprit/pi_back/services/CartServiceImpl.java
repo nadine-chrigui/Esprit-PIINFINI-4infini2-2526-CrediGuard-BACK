@@ -33,7 +33,7 @@ public class CartServiceImpl implements CartService {
     @Override
     @Transactional
     public CartResponse getMyCart() {
-        User me = userService.getCurrentUserOrThrow();
+        User me = userService.getOrCreateCurrentUser();
         Cart cart = getOrCreateActiveCart(me);
         return toResponse(cart);
     }
