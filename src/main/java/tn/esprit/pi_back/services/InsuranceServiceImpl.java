@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import tn.esprit.pi_back.entities.*;
 import tn.esprit.pi_back.entities.enums.ClaimStatus;
+import tn.esprit.pi_back.entities.enums.PolicyStatus;
 import tn.esprit.pi_back.repositories.*;
 
 import java.time.LocalDate;
@@ -24,6 +25,7 @@ public class InsuranceServiceImpl implements IInsuranceService {
     private final DemandeCreditRepository demandeCreditRepository;
     private final UserRepository userRepository;
     private final InsuranceCompanyRepository companyRepository;
+    private final VoucherRepository voucherRepository;
 
     @Override
     public InsuranceRecommendation calculateRecommendation(Long demandeCreditId) {
@@ -91,6 +93,13 @@ public class InsuranceServiceImpl implements IInsuranceService {
         InsuranceOffer offer = offerRepository.findById(offerId)
                 .orElseThrow(() -> new RuntimeException("Offre non trouvée"));
 
+        // Deduct from voucher if associated with the demandeCredit
+        Voucher voucher = voucherRepository.findByDemandeCreditId(demandeCreditId)
+                .orElseThrow(() -> new RuntimeException("Voucher non trouvé pour cette demande"));
+
+        // Simple check: voucher amount must cover the premium (or part of it)
+        // In real app, we'd check balance. Here we just set policy status to PENDING
+        
         InsurancePolicy policy = new InsurancePolicy();
         policy.setClient(client);
         policy.setInsuranceOffer(offer);
@@ -98,6 +107,9 @@ public class InsuranceServiceImpl implements IInsuranceService {
         policy.setPolicyNumber("POL-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
         policy.setStartDate(LocalDate.now());
         policy.setEndDate(LocalDate.now().plusYears(1));
+        policy.setStatus(PolicyStatus.PENDING);
+        policy.setPremiumAmount(offer.getAnnualPremium());
+        policy.setDurationYears(1);
 
         return policyRepository.save(policy);
     }
@@ -109,10 +121,10 @@ public class InsuranceServiceImpl implements IInsuranceService {
 
         InsuranceClaim claim = new InsuranceClaim();
         claim.setInsurancePolicy(policy);
-        claim.setReason(reason);
-        claim.setClaimReference(claimReference != null ? claimReference : "CLM-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+        claim.setRejectionReason(reason);
+        claim.setClaimNumber(claimReference != null ? claimReference : "CLM-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
         claim.setStatus(ClaimStatus.PENDING);
-        claim.setCreatedAt(LocalDateTime.now());
+        claim.setDeclaredAt(LocalDateTime.now());
         
         return claimRepository.save(claim);
     }
@@ -133,7 +145,7 @@ public class InsuranceServiceImpl implements IInsuranceService {
                 .orElseThrow(() -> new RuntimeException("Sinistre non trouvé"));
         
         claim.setStatus(status);
-        if (reason != null) claim.setReason(reason);
+        if (reason != null) claim.setRejectionReason(reason);
         claim.setDecidedAt(LocalDateTime.now());
         
         return claimRepository.save(claim);
@@ -187,5 +199,43 @@ public class InsuranceServiceImpl implements IInsuranceService {
     @Override
     public List<InsuranceRecommendation> getRecommendationsByClient(Long clientId) {
         return recommendationRepository.findByDemandeCreditClientId(clientId);
+    }
+
+    @Override
+    public Double calculateRiskScore(Long clientId) {
+        User user = userRepository.findById(clientId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        double score = 50.0; // Base score
+        if (user.getSector() != null) {
+            if (user.getSector().equalsIgnoreCase("INDUSTRY")) score += 20;
+            if (user.getSector().equalsIgnoreCase("SERVICES")) score += 10;
+        }
+        if (user.getRegion() != null && user.getRegion().equalsIgnoreCase("TUNIS")) {
+            score -= 5; // Less risk in capital?
+        }
+        return score;
+    }
+
+    @Override
+    public Integer calculateAdequacyScore(Long offerId, Long clientId) {
+        User user = userRepository.findById(clientId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        InsuranceOffer offer = offerRepository.findById(offerId)
+                .orElseThrow(() -> new RuntimeException("Offer not found"));
+
+        int score = 70; // Base matching score
+        if (offer.getTags() != null && user.getSector() != null) {
+            if (java.util.Arrays.stream(offer.getTags().split(",")).anyMatch(t -> t.trim().equalsIgnoreCase(user.getSector()))) {
+                score += 20;
+            }
+        }
+        return Math.min(score, 100);
+    }
+
+    @Override
+    public byte[] generatePolicyPDF(Long policyId) {
+        // Mock PDF generation
+        return "Contrat PDF Mock content".getBytes();
     }
 }

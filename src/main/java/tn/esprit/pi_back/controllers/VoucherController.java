@@ -11,7 +11,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/vouchers")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin("*")
 public class VoucherController {
 
     private final IVoucherService voucherService;
@@ -52,6 +52,11 @@ public class VoucherController {
     @PutMapping("/consume/{id}")
     public VoucherMiniDTO consume(@PathVariable Long id, @RequestParam double amount) {
         return voucherService.consumeVoucher(id, amount);
+    }
+
+    @GetMapping("/client/{clientId}")
+    public ResponseEntity<List<VoucherMiniDTO>> getByClient(@PathVariable Long clientId) {
+        return ResponseEntity.ok(voucherService.getVouchersByClient(clientId));
     }
 
 }

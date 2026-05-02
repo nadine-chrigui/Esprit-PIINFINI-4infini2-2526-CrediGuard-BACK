@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import tn.esprit.pi_back.constants.MLFeatures;
 import tn.esprit.pi_back.dto.evaluation.CreditRiskFlaskResponseDTO;
 import tn.esprit.pi_back.dto.evaluation.EvaluationPredictionRequestDTO;
 import tn.esprit.pi_back.dto.evaluation.EvaluationRisqueRequestDTO;
@@ -140,25 +141,28 @@ public class EvaluationRisqueServiceImpl implements EvaluationRisqueService {
     ) {
         Map<String, Object> payload = new HashMap<>();
 
-        payload.put("person_age", profil.getPersonAge());
-        payload.put("person_income", profil.getPersonIncomeAnnual());
-        payload.put("person_home_ownership", profil.getPersonHomeOwnership().name());
-        payload.put("person_emp_length", profil.getPersonEmploymentLength());
-        payload.put("cb_person_default_on_file", profil.getPreviousDefaultOnFile().name());
-        payload.put("cb_person_cred_hist_length", profil.getCreditHistoryLength());
-        payload.put("loan_intent", profil.getLoanIntent().name());
-        payload.put("loan_grade", loanGrade.name());
-        payload.put("loan_amnt", demande.getMontantDemande());
-        payload.put("loan_int_rate", interestRate);
-        payload.put("loan_percent_income", demande.getMontantDemande() / profil.getPersonIncomeAnnual());
+        payload.put(MLFeatures.PERSON_AGE, profil.getPersonAge());
+        payload.put(MLFeatures.PERSON_INCOME, profil.getPersonIncomeAnnual());
+        payload.put(MLFeatures.PERSON_HOME_OWNERSHIP, profil.getPersonHomeOwnership().name());
+        payload.put(MLFeatures.PERSON_EMP_LENGTH, profil.getPersonEmploymentLength());
+        payload.put(MLFeatures.CB_PERSON_DEFAULT_ON_FILE, profil.getPreviousDefaultOnFile().name());
+        payload.put(MLFeatures.CB_PERSON_CRED_HIST_LENGTH, profil.getCreditHistoryLength());
+        payload.put(MLFeatures.LOAN_INTENT, profil.getLoanIntent().name());
+        payload.put(MLFeatures.LOAN_GRADE, loanGrade.name());
+        payload.put(MLFeatures.LOAN_AMNT, demande.getMontantDemande());
+        payload.put(MLFeatures.LOAN_INT_RATE, interestRate);
+        payload.put(MLFeatures.LOAN_PERCENT_INCOME, demande.getMontantDemande() / profil.getPersonIncomeAnnual());
 
         if (dto != null && dto.nSim() != null) {
-            payload.put("n_sim", dto.nSim());
+            payload.put(MLFeatures.N_SIM, dto.nSim());
         }
 
         if (dto != null && dto.noiseFactor() != null) {
-            payload.put("noise_factor", dto.noiseFactor());
+            payload.put(MLFeatures.NOISE_FACTOR, dto.noiseFactor());
         }
+
+        // ── Step 6: Verify payload (Very Important) ───────────────────────────────
+        System.out.println("ML Risk Prediction Payload: " + payload);
 
         return payload;
     }

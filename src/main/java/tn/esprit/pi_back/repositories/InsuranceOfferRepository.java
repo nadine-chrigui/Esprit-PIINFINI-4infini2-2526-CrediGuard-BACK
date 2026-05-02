@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface InsuranceOfferRepository extends JpaRepository<InsuranceOffer, Long> {
     List<InsuranceOffer> findByInsuranceCompanyId(Long companyId);
+    List<InsuranceOffer> findByActiveTrue();
 }

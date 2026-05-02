@@ -12,4 +12,5 @@ public interface IVoucherService {
     void deleteVoucher(Long id);
     VoucherMiniDTO getVoucherByCode(String code);
     VoucherMiniDTO consumeVoucher(Long voucherId, double purchaseAmount);
+    List<VoucherMiniDTO> getVouchersByClient(Long clientId);
 }

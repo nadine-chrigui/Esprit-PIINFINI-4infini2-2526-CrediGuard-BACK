@@ -1,6 +1,7 @@
 package tn.esprit.pi_back.services;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tn.esprit.pi_back.dto.demande.DemandeCreditRequestDTO;
@@ -8,6 +9,7 @@ import tn.esprit.pi_back.dto.demande.DemandeCreditResponseDTO;
 import tn.esprit.pi_back.entities.DemandeCredit;
 import tn.esprit.pi_back.entities.User;
 import tn.esprit.pi_back.entities.enums.StatutDemande;
+import tn.esprit.pi_back.events.CreditApprovedEvent;
 import tn.esprit.pi_back.exceptions.ResourceNotFoundException;
 import tn.esprit.pi_back.mappers.DemandeCreditMapper;
 import tn.esprit.pi_back.repositories.DemandeCreditRepository;
@@ -27,6 +29,7 @@ public class DemandeCreditServiceImpl implements DemandeCreditService {
     private final UserRepository userRepo;
     private final ProfilCreditRepository profilCreditRepository;
     private final DemandeCreditMapper demandeCreditMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public DemandeCreditResponseDTO create(String email, DemandeCreditRequestDTO dto) {
@@ -133,6 +136,12 @@ public class DemandeCreditServiceImpl implements DemandeCreditService {
 
         d.setStatut(newStatus);
         DemandeCredit updated = demandeRepo.save(d);
+
+        if (newStatus == StatutDemande.APPROUVEE) {
+            System.out.println(">>>> PUBLISHING CreditApprovedEvent for credit " + updated.getReference());
+            eventPublisher.publishEvent(new CreditApprovedEvent(this, updated));
+        }
+
         return demandeCreditMapper.toResponse(updated);
     }
 

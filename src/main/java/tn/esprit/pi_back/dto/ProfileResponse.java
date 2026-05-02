@@ -15,4 +15,8 @@ public class ProfileResponse {
     private String phone;
     private UserType userType;
     private Boolean enabled;
+    
+    private String sector;
+    private String activityType;
+    private String region;
 }

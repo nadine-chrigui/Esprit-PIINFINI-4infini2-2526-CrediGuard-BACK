@@ -3,6 +3,7 @@ package tn.esprit.pi_back.entities;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
+import java.util.List;
 
 @Entity
 @Getter
@@ -29,9 +30,22 @@ public class InsuranceOffer {
     @Column(nullable = false, length = 1000)
     private String coverageDetails;
 
-    @NotBlank
-    @Column(nullable = false, length = 1000)
+    @Column(length = 1000)
     private String guarantees;
+
+    @Column(length = 1000)
+    private String exclusions;
+
+    @NotBlank
+    private String type; // e.g., TRANSPORT, BIENS, VIE
+
+    private Double coverageAmount;
+    private Double franchise;
+    private Integer coverageRate;
+
+    private String tags;
+
+    private boolean active = true;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "company_id", nullable = false)

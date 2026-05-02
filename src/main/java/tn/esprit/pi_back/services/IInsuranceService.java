@@ -15,4 +15,9 @@ public interface IInsuranceService {
     InsuranceRecommendation simulateInsurance(tn.esprit.pi_back.dto.insurance.InsuranceSimulationDTO simulationRequest);
     List<InsuranceCompany> getAllCompanies();
     List<InsuranceRecommendation> getRecommendationsByClient(Long clientId);
+    
+    // New methods
+    Double calculateRiskScore(Long clientId);
+    Integer calculateAdequacyScore(Long offerId, Long clientId);
+    byte[] generatePolicyPDF(Long policyId);
 }

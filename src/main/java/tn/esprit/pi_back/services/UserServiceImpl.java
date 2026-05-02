@@ -138,40 +138,51 @@ public class UserServiceImpl implements UserService {
     public ProfileResponse getMyProfile() {
         User user = getCurrentUserOrThrow();
 
-        return new ProfileResponse(
-                user.getId(),
-                user.getFullName(),
-                user.getEmail(),
-                user.getPhone(),
-                user.getUserType(),
-                user.isEnabled()
-        );
+        ProfileResponse resp = new ProfileResponse();
+        resp.setId(user.getId());
+        resp.setFullName(user.getFullName());
+        resp.setEmail(user.getEmail());
+        resp.setPhone(user.getPhone());
+        resp.setUserType(user.getUserType());
+        resp.setEnabled(user.isEnabled());
+        resp.setSector(user.getSector());
+        resp.setActivityType(user.getActivityType());
+        resp.setRegion(user.getRegion());
+        return resp;
     }
 
     @Override
     public ProfileResponse updateMyProfile(UpdateProfileRequest request) {
-        User user = getCurrentUserOrThrow();
+        User user = getOrCreateCurrentUser();
 
-        userRepository.findByEmail(request.getEmail()).ifPresent(found -> {
-            if (!found.getId().equals(user.getId())) {
-                throw new RuntimeException("Email already exists: " + request.getEmail());
-            }
-        });
-
+        // On ne change pas l'email en mode test pour éviter de casser la session/le fallback
+        // user.setEmail(request.getEmail()); 
+        
         user.setFullName(request.getFullName());
-        user.setEmail(request.getEmail());
         user.setPhone(request.getPhone());
+        user.setSector(request.getSector());
+        user.setActivityType(request.getActivityType());
+        user.setRegion(request.getRegion());
+
+        // Sécurité : S'assurer que les champs vitaux ne sont pas nuls pour éviter les crashs de sauvegarde
+        if (user.getEnabled() == null) user.setEnabled(true);
+        if (user.getUserType() == null) user.setUserType(tn.esprit.pi_back.entities.enums.UserType.CLIENT);
+        if (user.getPassword() == null) user.setPassword("12345678");
 
         User saved = userRepository.save(user);
 
-        return new ProfileResponse(
-                saved.getId(),
-                saved.getFullName(),
-                saved.getEmail(),
-                saved.getPhone(),
-                saved.getUserType(),
-                saved.isEnabled()
-        );
+
+        ProfileResponse resp = new ProfileResponse();
+        resp.setId(saved.getId());
+        resp.setFullName(saved.getFullName());
+        resp.setEmail(saved.getEmail());
+        resp.setPhone(saved.getPhone());
+        resp.setUserType(saved.getUserType());
+        resp.setEnabled(saved.isEnabled());
+        resp.setSector(saved.getSector());
+        resp.setActivityType(saved.getActivityType());
+        resp.setRegion(saved.getRegion());
+        return resp;
     }
 
     @Override

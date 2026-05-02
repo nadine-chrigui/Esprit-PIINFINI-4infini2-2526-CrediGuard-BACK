@@ -1,6 +1,7 @@
 package tn.esprit.pi_back.services;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tn.esprit.pi_back.dto.decision.DecisionCreditRequestDTO;
@@ -9,6 +10,7 @@ import tn.esprit.pi_back.entities.DecisionCredit;
 import tn.esprit.pi_back.entities.DemandeCredit;
 import tn.esprit.pi_back.entities.enums.DecisionFinale;
 import tn.esprit.pi_back.entities.enums.StatutDemande;
+import tn.esprit.pi_back.events.CreditApprovedEvent;
 import tn.esprit.pi_back.exceptions.ResourceNotFoundException;
 import tn.esprit.pi_back.mappers.DecisionCreditMapper;
 import tn.esprit.pi_back.repositories.DecisionCreditRepository;
@@ -22,6 +24,7 @@ public class DecisionCreditServiceImpl implements DecisionCreditService {
     private final DecisionCreditRepository decisionRepo;
     private final DemandeCreditRepository demandeRepo;
     private final DecisionCreditMapper decisionCreditMapper;
+    private final ApplicationEventPublisher eventPublisher; // Ajouté pour les événements
 
     @Override
     public DecisionCreditResponseDTO create(Long demandeId, DecisionCreditRequestDTO dto) {
@@ -48,8 +51,15 @@ public class DecisionCreditServiceImpl implements DecisionCreditService {
 
         if (dto.decisionFinale() == DecisionFinale.ACCEPTE) {
             demande.setStatut(StatutDemande.APPROUVEE);
+            demandeRepo.save(demande); // On force la sauvegarde
+            
+            // CRUCIAL: On prévient le système que le crédit est approuvé pour générer le voucher
+            System.out.println(">>>> [DECISION SERVICE] PUBLISHING CreditApprovedEvent for " + demande.getReference());
+            eventPublisher.publishEvent(new CreditApprovedEvent(this, demande));
+            
         } else if (dto.decisionFinale() == DecisionFinale.REFUSE) {
             demande.setStatut(StatutDemande.REJETEE);
+            demandeRepo.save(demande);
         }
 
         return decisionCreditMapper.toResponse(saved);
