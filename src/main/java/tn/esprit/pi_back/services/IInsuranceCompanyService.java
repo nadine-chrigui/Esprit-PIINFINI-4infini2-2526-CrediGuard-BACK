@@ -1,18 +1,15 @@
 package tn.esprit.pi_back.services;
 
+import tn.esprit.pi_back.dto.insurance.InsuranceCompanyDTO;
 import tn.esprit.pi_back.entities.InsuranceCompany;
-
 import java.util.List;
 
 public interface IInsuranceCompanyService {
-
-    InsuranceCompany add(InsuranceCompany c);
-
-    InsuranceCompany update(InsuranceCompany c);
-
+    List<InsuranceCompanyDTO> getAllPublic();
+    InsuranceCompanyDTO getByIdWithOffers(Long id);
+    InsuranceCompany save(InsuranceCompany company);
+    InsuranceCompany update(Long id, InsuranceCompany company);
     void delete(Long id);
-
-    InsuranceCompany get(Long id);
-
-    List<InsuranceCompany> all();
+    InsuranceCompany getById(Long id);
+    List<InsuranceCompany> getAll();
 }

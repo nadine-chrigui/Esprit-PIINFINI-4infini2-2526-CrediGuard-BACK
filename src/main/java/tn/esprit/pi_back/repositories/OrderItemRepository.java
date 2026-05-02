@@ -11,6 +11,20 @@ import org.springframework.data.repository.query.Param;
 import tn.esprit.pi_back.entities.enums.OrderStatus;
 public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
     List<OrderItem> findByOrderId(Long orderId);
+
+    @Query("""
+        select coalesce(sum(oi.quantity), 0)
+        from OrderItem oi
+        where oi.product.id = :productId
+          and oi.order.status in :statuses
+          and oi.order.createdAt >= :startDate
+    """)
+    Long sumQuantitySoldSince(
+            @Param("productId") Long productId,
+            @Param("statuses") List<OrderStatus> statuses,
+            @Param("startDate") java.time.LocalDateTime startDate
+    );
+
     @Query("""
     select oi.product.id, oi.product.name, coalesce(sum(oi.quantity), 0), coalesce(sum(oi.lineTotal), 0)
     from OrderItem oi

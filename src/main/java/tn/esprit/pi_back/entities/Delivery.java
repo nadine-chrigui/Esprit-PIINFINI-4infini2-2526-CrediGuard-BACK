@@ -6,6 +6,7 @@ import lombok.*;
 import tn.esprit.pi_back.entities.enums.DeliverySlot;
 import tn.esprit.pi_back.entities.enums.DeliveryStatus;
 import tn.esprit.pi_back.entities.enums.DeliveryType;
+import tn.esprit.pi_back.entities.enums.DeliveryZoneRisk;
 
 import java.time.LocalDateTime;
 
@@ -50,6 +51,18 @@ public class Delivery {
 
     @PositiveOrZero(message = "deliveryFee must be >= 0")
     private Double deliveryFee;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "delivery_zone_id")
+    private DeliveryZone deliveryZone;
+
+    @Enumerated(EnumType.STRING)
+    private DeliveryZoneRisk zoneRiskLevel = DeliveryZoneRisk.NORMAL;
+
+    @PositiveOrZero
+    private Integer extraDelayDays = 0;
+
+    private Boolean requiresAdminApproval = false;
 
     /* ================= SCHEDULING ================= */
 

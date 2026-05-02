@@ -9,6 +9,7 @@ public class DemandeCreditMapper {
 
     public DemandeCreditResponseDTO toResponse(DemandeCredit demande) {
         Long voucherId = demande.getVoucher() != null ? demande.getVoucher().getId() : null;
+        String voucherCode = demande.getVoucher() != null ? demande.getVoucher().getCode() : null;
         Long clientId = demande.getClient() != null ? demande.getClient().getId() : null;
         String clientName = demande.getClient() != null ? demande.getClient().getFullName() : null;
 
@@ -24,6 +25,7 @@ public class DemandeCreditMapper {
                 clientId,
                 clientName,
                 voucherId,
+                voucherCode,
                 demande.getCreatedAt(),
                 demande.getUpdatedAt()
         );

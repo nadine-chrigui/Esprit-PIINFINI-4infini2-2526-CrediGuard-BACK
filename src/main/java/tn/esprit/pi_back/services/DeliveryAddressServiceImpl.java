@@ -22,8 +22,13 @@ public class DeliveryAddressServiceImpl implements DeliveryAddressService {
         a.setFullName(req.fullName().trim());
         a.setPhone(req.phone().trim());
         a.setCity(req.city().trim());
+        a.setGovernorate(trimOrNull(req.governorate()));
+        a.setDelegation(trimOrNull(req.delegation()));
+        a.setLocality(trimOrNull(req.locality()));
         a.setAddressLine(req.addressLine().trim());
         a.setAdditionalInfo(req.additionalInfo());
+        a.setLatitude(req.latitude());
+        a.setLongitude(req.longitude());
         return toResponse(deliveryAddressRepository.save(a));
     }
 
@@ -35,8 +40,13 @@ public class DeliveryAddressServiceImpl implements DeliveryAddressService {
         if (req.fullName() != null) a.setFullName(req.fullName().trim());
         if (req.phone() != null) a.setPhone(req.phone().trim());
         if (req.city() != null) a.setCity(req.city().trim());
+        if (req.governorate() != null) a.setGovernorate(trimOrNull(req.governorate()));
+        if (req.delegation() != null) a.setDelegation(trimOrNull(req.delegation()));
+        if (req.locality() != null) a.setLocality(trimOrNull(req.locality()));
         if (req.addressLine() != null) a.setAddressLine(req.addressLine().trim());
         if (req.additionalInfo() != null) a.setAdditionalInfo(req.additionalInfo());
+        if (req.latitude() != null) a.setLatitude(req.latitude());
+        if (req.longitude() != null) a.setLongitude(req.longitude());
 
         return toResponse(a);
     }
@@ -69,8 +79,17 @@ public class DeliveryAddressServiceImpl implements DeliveryAddressService {
                 a.getFullName(),
                 a.getPhone(),
                 a.getCity(),
+                a.getGovernorate(),
+                a.getDelegation(),
+                a.getLocality(),
                 a.getAddressLine(),
-                a.getAdditionalInfo()
+                a.getAdditionalInfo(),
+                a.getLatitude(),
+                a.getLongitude()
         );
+    }
+
+    private String trimOrNull(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
     }
 }

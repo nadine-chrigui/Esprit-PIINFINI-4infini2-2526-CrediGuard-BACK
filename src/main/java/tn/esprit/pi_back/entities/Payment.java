@@ -48,6 +48,15 @@ public class Payment {
     @Size(max = 120)
     private String transactionRef;
 
+    @Size(max = 120)
+    private String stripeSessionId;
+
+    @Size(max = 120)
+    private String stripePaymentIntentId;
+
+    @Size(max = 120)
+    private String flouciPaymentId;
+
     /* ================= AUDIT ================= */
 
     private LocalDateTime createdAt;

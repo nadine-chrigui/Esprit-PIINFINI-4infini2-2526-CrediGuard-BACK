@@ -7,6 +7,7 @@ public class UserMapper {
 
     // 🔥 CLIENT
     public static ClientDTO toClientDTO(User u) {
+        if (u == null) return null;
         return new ClientDTO(
                 u.getId(),
                 u.getFullName(),
@@ -16,6 +17,7 @@ public class UserMapper {
 
     // 🔥 PARTNER
     public static PartnerDTO toPartnerDTO(User u) {
+        if (u == null) return null;
         return new PartnerDTO(
                 u.getId(),
                 u.getFullName(),
@@ -26,6 +28,7 @@ public class UserMapper {
 
     // 🔥 GENERIC (optionnel)
     public static UserMiniDTO toUserMiniDTO(User u) {
+        if (u == null) return null;
         return new UserMiniDTO(
                 u.getId(),
                 u.getFullName(),
@@ -36,11 +39,14 @@ public class UserMapper {
 
     // 🔥 SMART MAPPING (BONUS PRO)
     public static Object toDTO(User u) {
+        if (u == null) return null;
+        if (u.getUserType() == null) return toClientDTO(u); // Default fallback
+        
         return switch (u.getUserType()) {
             case CLIENT -> toClientDTO(u);
             case PARTNER -> toPartnerDTO(u);
             case INSURANCE -> toUserMiniDTO(u);
-            default -> throw new RuntimeException("Unknown user type");
+            default -> toUserMiniDTO(u);
         };
     }
 }

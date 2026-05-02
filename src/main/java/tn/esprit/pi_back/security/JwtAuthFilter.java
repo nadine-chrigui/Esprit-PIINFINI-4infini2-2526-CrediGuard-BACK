@@ -56,14 +56,24 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getServletPath();
-        return "OPTIONS".equalsIgnoreCase(request.getMethod())
-                || path.startsWith("/auth/")
-                || path.startsWith("/api/auth/")
-                || path.startsWith("/api/vouchers")
-                || path.startsWith("/api/products")
-                || path.startsWith("/api/cart")
-                || path.startsWith("/api/categories")
-                || path.startsWith("/api/insurance/claims")
-                || path.startsWith("/api/insurance/policies");
+        String method = request.getMethod();
+
+        // On ne bypass que ce qui est VRAIMENT public
+        return "OPTIONS".equalsIgnoreCase(method)
+                || path.contains("/auth/")
+                || path.contains("/uploads/")
+                || path.contains("/vouchers")
+                || path.contains("/insurance")
+                || path.contains("/score-risque")
+                || path.contains("/notifications")
+                || path.contains("/partnership")
+                || path.contains("/contrats")
+                || path.contains("/claims")
+                || path.contains("/assureurs")
+                || path.contains("/offres")
+                || path.contains("/products")
+                || path.contains("/users/partners")
+                || path.contains("/users/me")
+                || path.contains("/categories");
     }
 }

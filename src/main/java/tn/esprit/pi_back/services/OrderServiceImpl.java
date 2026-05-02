@@ -45,6 +45,7 @@ public class OrderServiceImpl implements OrderService {
     private final UserRepository userRepository;
     private final OrderMapper orderMapper;
     private final PromotionService promotionService;
+    private final ProductIntelligenceService productIntelligenceService;
 
     @Override
     public OrderResponse create(OrderCreateRequest req) {
@@ -253,6 +254,7 @@ public class OrderServiceImpl implements OrderService {
 
         if (req.status() == OrderStatus.PAID && order.getStatus() != OrderStatus.PAID) {
             decreaseStockForOrder(order);
+            refreshProductIntelligence(order);
         }
 
         order.setStatus(req.status());
@@ -295,6 +297,25 @@ public class OrderServiceImpl implements OrderService {
                 productRepository.save(product);
             }
         }
+    }
+
+    private void refreshProductIntelligence(Order order) {
+        if (order == null || order.getItems() == null) {
+            return;
+        }
+
+        order.getItems().stream()
+                .map(OrderItem::getProduct)
+                .filter(product -> product != null && product.getId() != null)
+                .map(Product::getId)
+                .distinct()
+                .forEach(productId -> {
+                    try {
+                        productIntelligenceService.analyzeProduct(productId);
+                    } catch (RuntimeException ex) {
+                        // Product intelligence must not block order status updates.
+                    }
+                });
     }
 
     private void validatePromoCode(PromoCode promo, double total) {

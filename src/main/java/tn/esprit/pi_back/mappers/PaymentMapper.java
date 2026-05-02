@@ -15,6 +15,9 @@ public class PaymentMapper {
                 p.getPaymentType(),
                 p.getPaymentStatus(),
                 p.getTransactionRef(),
+                p.getStripeSessionId(),
+                p.getStripePaymentIntentId(),
+                p.getFlouciPaymentId(),
                 p.getCreatedAt(),
                 p.getUpdatedAt()
         );

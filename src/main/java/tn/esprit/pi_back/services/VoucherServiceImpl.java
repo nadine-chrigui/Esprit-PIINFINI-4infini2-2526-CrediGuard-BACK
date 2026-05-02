@@ -11,8 +11,11 @@ import tn.esprit.pi_back.repositories.VoucherRepository;
 import tn.esprit.pi_back.dto.insurance.UserMapper;
 import java.util.List;
 
+import org.springframework.transaction.annotation.Transactional;
+
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class VoucherServiceImpl implements IVoucherService {
 
     private final VoucherRepository voucherRepository;
@@ -29,16 +32,19 @@ public class VoucherServiceImpl implements IVoucherService {
     @Override
     public VoucherMiniDTO getVoucherById(Long id) {
         return toDTO(voucherRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Voucher not found with id: " + id)));
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND, "Voucher not found with id: " + id)));
     }
 
     @Override
     public VoucherMiniDTO createVoucher(Voucher voucher) {
+        System.out.println(">>>> SAVING VOUCHER for client " + voucher.getClient().getId());
         // ✅ Recharger le client complet depuis la DB
         User client = userRepository.findById(voucher.getClient().getId())
                 .orElseThrow(() -> new RuntimeException("Client not found"));
         voucher.setClient(client);
-        return toDTO(voucherRepository.save(voucher));
+        Voucher saved = voucherRepository.save(voucher);
+        System.out.println(">>>> VOUCHER SAVED ID: " + saved.getId());
+        return toDTO(saved);
     }
 
     @Override
@@ -62,33 +68,30 @@ public class VoucherServiceImpl implements IVoucherService {
     }
 
     private VoucherMiniDTO toDTO(Voucher v) {
-        UserMiniDTO clientDTO = new UserMiniDTO(
-                v.getClient().getId(),
-                v.getClient().getFullName(),
-                v.getClient().getEmail(),
-                v.getClient().getPartnerType()
-        );
+        if (v == null) return null;
+        
         return new VoucherMiniDTO(
                 v.getId(),
                 v.getCode(),
                 v.getAmount(),
-                v.getStatus().name(),
+                v.getStatus() != null ? v.getStatus().name() : "INACTIVE",
                 v.getExpirationDate(),
                 UserMapper.toClientDTO(v.getClient())
         );
     }
+
     @Override
     public VoucherMiniDTO getVoucherByCode(String code) {
         Voucher v = voucherRepository.findByCode(code)
-                .orElseThrow(() -> new RuntimeException("Voucher not found"));
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND, "Voucher not found"));
 
         return new VoucherMiniDTO(
                 v.getId(),
                 v.getCode(),
                 v.getAmount(),
-                v.getStatus().name(), // ✅ enum → String
-                v.getExpirationDate(), // ✅ date
-                null // ou client si dispo
+                v.getStatus() != null ? v.getStatus().name() : "INACTIVE",
+                v.getExpirationDate(),
+                UserMapper.toClientDTO(v.getClient())
         );
     }
     @Override
@@ -117,4 +120,11 @@ public class VoucherServiceImpl implements IVoucherService {
         return toDTO(voucher);
     }
 
+    @Override
+    public List<VoucherMiniDTO> getVouchersByClient(Long clientId) {
+        return voucherRepository.findByClientId(clientId)
+                .stream()
+                .map(this::toDTO)
+                .toList();
+    }
 }

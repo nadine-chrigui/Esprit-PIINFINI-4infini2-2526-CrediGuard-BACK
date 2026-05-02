@@ -34,7 +34,7 @@ public class Transaction {
     /* ================= AMOUNT ================= */
 
     @NotNull
-    @Positive
+    @PositiveOrZero
     @Column(nullable = false)
     private Double montant;
 

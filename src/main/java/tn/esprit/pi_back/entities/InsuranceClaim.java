@@ -6,6 +6,7 @@ import lombok.*;
 import tn.esprit.pi_back.entities.enums.ClaimStatus;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Getter @Setter
@@ -19,6 +20,9 @@ public class InsuranceClaim {
 
     @NotBlank
     @Column(nullable = false, unique = true, length = 80)
+    private String claimNumber;
+
+    @Column(name = "claim_reference", length = 100, nullable = false)
     private String claimReference;
 
     @NotNull
@@ -26,27 +30,37 @@ public class InsuranceClaim {
     @Column(nullable = false, length = 20)
     private ClaimStatus status = ClaimStatus.PENDING;
 
-    private String reason;
-    private LocalDateTime createdAt;
+    @Column(length = 2000)
+    private String description;
+
+    @ElementCollection
+    private List<String> documentsUrl;
+
+    private Double amountRequested;
+    private Double amountApproved;
+    private String rejectionReason;
+    
+    private Integer fraudScore; 
+    private Integer riskScore; 
+
+    private LocalDateTime declaredAt;
     private LocalDateTime decidedAt;
 
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "voucher_id", unique = true, nullable = false)
-    private Voucher voucher;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "policy_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "policy_id")
     private InsurancePolicy insurancePolicy;
 
-    @Column(nullable = false)
-    private int riskScore;
-
-    @Column(length = 20)
-    private String analysis;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "voucher_id")
+    private Voucher voucher;
 
     @PrePersist
     void onCreate() {
-        createdAt = LocalDateTime.now();
+        declaredAt = LocalDateTime.now();
         if (status == null) status = ClaimStatus.PENDING;
     }
 }

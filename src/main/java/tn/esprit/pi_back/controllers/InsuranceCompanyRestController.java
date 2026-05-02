@@ -16,12 +16,12 @@ public class InsuranceCompanyRestController {
 
     @PostMapping("/add")
     public InsuranceCompany add(@RequestBody InsuranceCompany c) {
-        return service.add(c);
+        return service.save(c);
     }
 
     @PutMapping("/update")
     public InsuranceCompany update(@RequestBody InsuranceCompany c) {
-        return service.update(c);
+        return service.update(c.getId(), c);
     }
 
     @DeleteMapping("/delete/{id}")
@@ -31,11 +31,11 @@ public class InsuranceCompanyRestController {
 
     @GetMapping("/get/{id}")
     public InsuranceCompany get(@PathVariable Long id) {
-        return service.get(id);
+        return service.getById(id);
     }
 
     @GetMapping("/all")
     public List<InsuranceCompany> all() {
-        return service.all();
+        return service.getAll();
     }
 }

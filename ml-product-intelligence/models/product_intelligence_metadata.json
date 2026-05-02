@@ -1,0 +1,23 @@
+{
+  "model_type": "RandomForestClassifier + RandomForestRegressor",
+  "dataset": "C:\\Users\\utente\\Esprit-PIINFINI-4infini2-2526-CrediGuard-BACK\\ml-product-intelligence\\data\\product_intelligence_training.csv",
+  "rows": 500,
+  "feature_columns": [
+    "stock",
+    "sales_last_7_days",
+    "sales_last_30_days",
+    "price"
+  ],
+  "class_targets": [
+    "risk_level",
+    "performance_label",
+    "suggested_action"
+  ],
+  "regression_target": "performance_score",
+  "metrics": {
+    "risk_level_accuracy": 0.97,
+    "performance_label_accuracy": 0.98,
+    "suggested_action_accuracy": 0.97,
+    "performance_score_mae": 1.136090909090909
+  }
+}

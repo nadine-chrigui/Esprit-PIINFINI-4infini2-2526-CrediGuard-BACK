@@ -8,4 +8,6 @@ public interface CartService {
     CartResponse updateItem(Long itemId, UpdateItemRequest req);
     CartResponse removeItem(Long itemId);
     CartResponse clear();
+    CartResponse addAcceptedOfferToCart(Long offerId);
+
 }

@@ -30,6 +30,7 @@ public class PromotionServiceImpl implements PromotionService {
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
     private final CalendarEventRepository calendarEventRepository;
+    private final PromotionScheduleService promotionScheduleService;
 
     @Override
     public PromotionResponse create(PromotionCreateRequest request) {
@@ -37,6 +38,7 @@ public class PromotionServiceImpl implements PromotionService {
 
         Promotion promotion = new Promotion();
         mapToEntity(request, promotion);
+        promotion.setStatus(promotionScheduleService.resolveStatus(promotion, LocalDateTime.now()));
 
         return PromotionMapper.toResponse(promotionRepository.save(promotion));
     }
@@ -49,6 +51,7 @@ public class PromotionServiceImpl implements PromotionService {
                 .orElseThrow(() -> new IllegalArgumentException("Promotion not found: " + id));
 
         mapToEntity(request, promotion);
+        promotion.setStatus(promotionScheduleService.resolveStatus(promotion, LocalDateTime.now()));
 
         return PromotionMapper.toResponse(promotionRepository.save(promotion));
     }

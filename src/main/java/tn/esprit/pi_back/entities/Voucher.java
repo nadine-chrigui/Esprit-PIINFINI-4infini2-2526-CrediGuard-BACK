@@ -27,7 +27,7 @@ public class Voucher {
     private String code;
 
     @NotNull
-    @Positive
+    @PositiveOrZero
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal amount;
 
@@ -39,21 +39,23 @@ public class Voucher {
     private LocalDate expirationDate;
 
     // ✅ بدل Beneficiary : voucher appartient à un User CLIENT
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "client_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "client_id", nullable = true)
+    @org.hibernate.annotations.NotFound(action = org.hibernate.annotations.NotFoundAction.IGNORE)
     private User client;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "demande_credit_id", unique = true)
+    @org.hibernate.annotations.NotFound(action = org.hibernate.annotations.NotFoundAction.IGNORE)
     private DemandeCredit demandeCredit;
 
     // 1 voucher -> 0..1 transaction
     @OneToOne(mappedBy = "voucher", fetch = FetchType.LAZY)
     private Transaction transaction;
 
-    // 1 voucher -> 0..1 claim
-    @OneToOne(mappedBy = "voucher", fetch = FetchType.LAZY)
-    private InsuranceClaim insuranceClaim;
+    // 1 voucher -> * claims (Refunds)
+    @OneToMany(mappedBy = "voucher", fetch = FetchType.LAZY)
+    private java.util.List<InsuranceClaim> insuranceClaims;
 
     private LocalDateTime createdAt;
 

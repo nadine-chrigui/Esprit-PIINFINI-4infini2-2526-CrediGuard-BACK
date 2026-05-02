@@ -221,12 +221,8 @@ public class ProductRequestServiceImpl implements ProductRequestService {
         productRequestRepository.save(ownedRequest);
 
         // Add accepted offer product to active cart instead of creating an order directly
-        cartService.addItem(
-                new AddItemRequest(
-                        selectedOffer.getProduct().getId(),
-                        selectedOffer.getProposedQuantity()
-                )
-        );
+        cartService.addAcceptedOfferToCart(offerId);
+
 
         ProductRequestOffer refreshed = productRequestOfferRepository.findById(offerId)
                 .orElseThrow(() -> new RuntimeException("Accepted offer not found after update."));

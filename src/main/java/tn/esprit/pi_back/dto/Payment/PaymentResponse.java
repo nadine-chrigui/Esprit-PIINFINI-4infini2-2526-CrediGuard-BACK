@@ -12,6 +12,9 @@ public record PaymentResponse(
         PaymentType paymentType,
         PaymentStatus paymentStatus,
         String transactionRef,
+        String stripeSessionId,
+        String stripePaymentIntentId,
+        String flouciPaymentId,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {}

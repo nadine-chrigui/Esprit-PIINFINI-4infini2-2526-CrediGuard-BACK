@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import tn.esprit.pi_back.entities.enums.DiscountType;
 import tn.esprit.pi_back.entities.enums.PromotionTargetType;
+import tn.esprit.pi_back.entities.enums.PromotionStatus;
 import tn.esprit.pi_back.entities.enums.PromotionType;
 
 import java.time.LocalDateTime;
@@ -58,6 +59,10 @@ public class Promotion {
     @Column(nullable = false)
     private Boolean stackable = false;
 
+    @Enumerated(EnumType.STRING)
+    @Column(length = 30)
+    private PromotionStatus status = PromotionStatus.SCHEDULED;
+
     private LocalDateTime startDate;
 
     private LocalDateTime endDate;
@@ -88,6 +93,7 @@ public class Promotion {
         if (this.priority == null) this.priority = 0;
         if (this.autoApply == null) this.autoApply = true;
         if (this.stackable == null) this.stackable = false;
+        if (this.status == null) this.status = PromotionStatus.SCHEDULED;
     }
 
     @PreUpdate

@@ -5,6 +5,11 @@ public record DeliveryAddressResponse(
         String fullName,
         String phone,
         String city,
+        String governorate,
+        String delegation,
+        String locality,
         String addressLine,
-        String additionalInfo
+        String additionalInfo,
+        Double latitude,
+        Double longitude
 ) {}

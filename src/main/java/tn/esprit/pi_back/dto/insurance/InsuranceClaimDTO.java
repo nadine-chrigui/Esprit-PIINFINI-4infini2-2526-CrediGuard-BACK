@@ -9,6 +9,9 @@ public record InsuranceClaimDTO(
         String reason,
         LocalDateTime createdAt,
         LocalDateTime decidedAt,
+        Double amountRequested,
+        Integer fraudScore,
+        Integer riskScore,
         VoucherMiniDTO voucher,
         InsurancePolicyMiniDTO policy
 ) {}
