@@ -3,14 +3,16 @@ package tn.esprit.pi_back.services;
 import com.twilio.Twilio;
 import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import jakarta.annotation.PostConstruct;
+import org.springframework.util.StringUtils;
+
+import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.Map;
-import java.time.LocalDateTime;
 
 @Service
 @Slf4j
@@ -39,7 +41,7 @@ public class SmsVerificationService {
 
     @PostConstruct
     public void initTwilio() {
-        if (accountSid != null && !accountSid.startsWith("ACxxx")) {
+        if (hasTwilioCredentials()) {
             Twilio.init(accountSid, authToken);
             log.info("Twilio initialized successfully.");
         } else {
@@ -50,10 +52,10 @@ public class SmsVerificationService {
     public String sendOtp(String phoneNumber) {
         String code = String.format("%06d", new Random().nextInt(1000000));
         otpStorage.put(phoneNumber, new OtpData(code));
-        
-        String messageBody = "Votre code de vérification CrediGuard est : " + code;
 
-        if (accountSid != null && !accountSid.startsWith("ACxxx")) {
+        String messageBody = "Votre code de verification CrediGuard est : " + code;
+
+        if (hasTwilioCredentials()) {
             try {
                 Message.creator(
                         new PhoneNumber(phoneNumber),
@@ -65,27 +67,34 @@ public class SmsVerificationService {
                 log.error("Failed to send real SMS: {}", e.getMessage());
             }
         }
-        
-        // Simulation d'envoi via Trellio (Twilio)
+
         log.info("===> [SIMULATION SMS] SENT TO {}: {}", phoneNumber, messageBody);
         log.info("===> VOUS POUVEZ COPIER CE CODE POUR TESTER : {}", code);
-        
+
         return "OTP_SENT";
     }
 
     public boolean verifyOtp(String phoneNumber, String code) {
         OtpData data = otpStorage.get(phoneNumber);
         if (data == null) return false;
-        
+
         if (data.expiry.isBefore(LocalDateTime.now())) {
             otpStorage.remove(phoneNumber);
             return false;
         }
-        
+
         boolean isValid = data.code.equals(code);
         if (isValid) {
             otpStorage.remove(phoneNumber);
         }
         return isValid;
+    }
+
+    private boolean hasTwilioCredentials() {
+        return StringUtils.hasText(accountSid)
+                && StringUtils.hasText(authToken)
+                && StringUtils.hasText(fromNumber)
+                && accountSid.startsWith("AC")
+                && !accountSid.startsWith("ACxxx");
     }
 }
