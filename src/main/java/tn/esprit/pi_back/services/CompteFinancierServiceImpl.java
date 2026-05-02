@@ -42,4 +42,11 @@ public class CompteFinancierServiceImpl implements CompteFinancierService {
     public void delete(Long id) {
         compteFinancierRepository.deleteById(id);
     }
+
+    public CompteFinancier getByUserId(Long userId) {
+        return compteFinancierRepository
+                .findByUtilisateur_Id(userId)
+                .orElseThrow(() -> new RuntimeException("Compte non trouvé pour l'utilisateur " + userId));
+    }
+
 }

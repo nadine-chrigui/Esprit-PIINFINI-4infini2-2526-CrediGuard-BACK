@@ -10,7 +10,7 @@ import tn.esprit.pi_back.services.RegleRemboursementService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/regles-remboursement")
+@RequestMapping("/regles-remboursement")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class RegleRemboursementController {

@@ -9,7 +9,7 @@ import tn.esprit.pi_back.services.IVoucherService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/vouchers")
+@RequestMapping("/vouchers")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "http://localhost:4200")
 public class VoucherController {

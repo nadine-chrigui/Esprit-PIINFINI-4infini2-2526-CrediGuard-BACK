@@ -10,7 +10,7 @@ import tn.esprit.pi_back.services.CompteFinancierService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/comptes-financiers")
+@RequestMapping("/comptes-financiers")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class CompteFinancierController {
@@ -42,4 +42,9 @@ public class CompteFinancierController {
         compteFinancierService.delete(id);
         return ResponseEntity.noContent().build();
     }
+    @GetMapping("/utilisateur/{userId}")
+    public ResponseEntity<CompteFinancier> getByUserId(@PathVariable Long userId) {
+        return ResponseEntity.ok(compteFinancierService.getByUserId(userId));
+    }
+
 }

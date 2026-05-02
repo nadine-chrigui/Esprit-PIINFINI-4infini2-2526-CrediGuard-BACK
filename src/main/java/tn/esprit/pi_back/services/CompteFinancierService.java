@@ -13,4 +13,6 @@ public interface CompteFinancierService {
     List<CompteFinancier> getAll();
 
     void delete(Long id);
+     CompteFinancier getByUserId(Long userId) ;
+
 }

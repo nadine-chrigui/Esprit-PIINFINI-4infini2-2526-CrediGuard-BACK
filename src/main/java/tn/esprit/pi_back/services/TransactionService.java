@@ -1,5 +1,6 @@
 package tn.esprit.pi_back.services;
 
+import tn.esprit.pi_back.dto.CreateTransactionRequest;
 import tn.esprit.pi_back.entities.Transaction;
 import java.util.List;
 
@@ -13,4 +14,5 @@ public interface TransactionService {
     List<Transaction> getAll();
 
     void delete(Long id);
+    Transaction createFromRequest(CreateTransactionRequest request);
 }

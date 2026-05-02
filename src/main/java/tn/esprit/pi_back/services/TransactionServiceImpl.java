@@ -2,7 +2,10 @@ package tn.esprit.pi_back.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import tn.esprit.pi_back.dto.CreateTransactionRequest;
+import tn.esprit.pi_back.entities.CompteFinancier;
 import tn.esprit.pi_back.entities.Transaction;
+import tn.esprit.pi_back.repositories.CompteFinancierRepository;
 import tn.esprit.pi_back.repositories.TransactionRepository;
 
 import java.util.List;
@@ -12,6 +15,7 @@ import java.util.List;
 public class TransactionServiceImpl implements TransactionService {
 
     private final TransactionRepository transactionRepository;
+    private final CompteFinancierRepository compteFinancierRepository;
 
     @Override
     public Transaction create(Transaction transaction) {
@@ -46,5 +50,28 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public void delete(Long id) {
         transactionRepository.deleteById(id);
+    }
+    public List<Transaction> getByCompteId(Long compteId) {
+        return transactionRepository
+                .findByCompteSource_IdCompteOrCompteDestination_IdCompte(compteId, compteId);
+    }
+    public Transaction createFromRequest(CreateTransactionRequest request) {
+        Transaction tx = new Transaction();
+        tx.setTypeTransaction(request.getTypeTransaction());
+        tx.setMontant(request.getMontant());
+        tx.setOrderId(request.getOrderId());
+
+        CompteFinancier source = compteFinancierRepository
+                .findById(request.getCompteSourceId())
+                .orElseThrow(() -> new RuntimeException("Compte source introuvable"));
+
+        CompteFinancier destination = compteFinancierRepository
+                .findById(request.getCompteDestinationId())
+                .orElseThrow(() -> new RuntimeException("Compte destination introuvable"));
+
+        tx.setCompteSource(source);
+        tx.setCompteDestination(destination);
+
+        return transactionRepository.save(tx);
     }
 }
