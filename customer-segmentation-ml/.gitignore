@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Data files (large files - generate via scripts)
+data/synthetic_customers.csv
+data/customer_data_processed.csv
+data/data_splits.pkl
+
+# Model files (generate via training)
+models/*.pkl
+models/*.joblib
+
+# Reports (generate via scripts)
+reports/*.html
+reports/*.png
+reports/*.json
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment
+.env
+*.env
+
+# macOS
+.DS_Store
+
+# Docker
+.dockerignore
+
+# Logs
+*.log
+logs/

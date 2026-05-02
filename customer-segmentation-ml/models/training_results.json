@@ -1,0 +1,37 @@
+{
+  "logistic_regression": {
+    "best_params": {
+      "C": 10.0,
+      "max_iter": 1000,
+      "solver": "lbfgs"
+    },
+    "cv_f1": 0.9985704740130898,
+    "test_acc": 1.0
+  },
+  "random_forest": {
+    "best_params": {
+      "max_depth": null,
+      "min_samples_split": 2,
+      "n_estimators": 100
+    },
+    "cv_f1": 0.9988493963023938,
+    "test_acc": 0.9993333333333333
+  },
+  "xgboost": {
+    "best_params": {
+      "learning_rate": 0.05,
+      "max_depth": 3,
+      "n_estimators": 100
+    },
+    "cv_f1": 0.9988493963023938,
+    "test_acc": 0.9993333333333333
+  },
+  "neural_network": {
+    "best_params": {
+      "epochs": 22,
+      "batch_size": 64
+    },
+    "cv_f1": 1.0,
+    "test_acc": 0.996
+  }
+}
