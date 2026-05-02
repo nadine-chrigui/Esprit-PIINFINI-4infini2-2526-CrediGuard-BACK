@@ -34,4 +34,4 @@ build/
 .env
 faiss_index/
 __pycache__/
-*.pkl
+
