@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+langchain
+langchain-core
+faiss-cpu
+sentence-transformers
+langchain-community
+langchain-huggingface
+langchain-google-genai
+google-generativeai
