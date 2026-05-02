@@ -32,3 +32,6 @@ build/
 ### VS Code ###
 .vscode/
 .env
+faiss_index/
+__pycache__/
+*.pkl
