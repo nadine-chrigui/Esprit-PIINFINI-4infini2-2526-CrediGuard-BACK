@@ -4,6 +4,7 @@ import com.lowagie.text.Document;
 import com.lowagie.text.Element;
 import com.lowagie.text.Font;
 import com.lowagie.text.FontFactory;
+import com.lowagie.text.Image;
 import com.lowagie.text.PageSize;
 import com.lowagie.text.Paragraph;
 import com.lowagie.text.Phrase;
@@ -12,6 +13,7 @@ import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tn.esprit.pi_back.dto.evaluation.LigneAmortissementDTO;
@@ -22,6 +24,7 @@ import tn.esprit.pi_back.repositories.ModaliteRepository;
 
 import java.awt.Color;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -88,24 +91,30 @@ public class ModalitePdfService {
         left.addElement(title);
         left.addElement(ref);
 
-        PdfPCell right = new PdfPCell();
-        right.setBorder(Rectangle.NO_BORDER);
-        right.setPadding(10);
-        right.setBackgroundColor(BLUE);
-        right.setHorizontalAlignment(Element.ALIGN_CENTER);
-
-        Paragraph label = new Paragraph("DOCUMENT CREDIT", font(12, Font.BOLD, WHITE));
-        Paragraph status = new Paragraph("BLEU - ROUGE - BLANC", font(9, Font.NORMAL, LIGHT_BLUE));
-        label.setAlignment(Element.ALIGN_CENTER);
-        status.setAlignment(Element.ALIGN_CENTER);
-
-        right.addElement(label);
-        right.addElement(status);
-
         header.addCell(left);
-        header.addCell(right);
+        header.addCell(logoCell());
 
         document.add(header);
+    }
+
+    private PdfPCell logoCell() {
+        PdfPCell cell = new PdfPCell();
+        cell.setBorder(Rectangle.NO_BORDER);
+        cell.setPadding(8);
+        cell.setBackgroundColor(WHITE);
+        cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+
+        try (InputStream input = new ClassPathResource("static/images/crediguard-logo.png").getInputStream()) {
+            Image logo = Image.getInstance(input.readAllBytes());
+            logo.scaleToFit(110, 90);
+            logo.setAlignment(Element.ALIGN_RIGHT);
+            cell.addElement(logo);
+        } catch (Exception ignored) {
+            cell.addElement(new Paragraph(""));
+        }
+
+        return cell;
     }
 
     private void addSummary(Document document, Modalite modalite, DemandeCredit demande) throws Exception {
