@@ -91,4 +91,8 @@ public class OrderController {
     ) {
         return ResponseEntity.ok(orderService.updateStatusAdmin(id, req));
     }
+    @PatchMapping("/{id:\\d+}/pay")
+    public ResponseEntity<OrderResponse> payOrder(@PathVariable Long id) {
+        return ResponseEntity.ok(orderService.payOrder(id));
+    }
 }

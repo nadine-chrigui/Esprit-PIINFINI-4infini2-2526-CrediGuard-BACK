@@ -4,5 +4,6 @@ public enum TransactionType {
     VENTE,
     ACHAT,
     REMBOURSEMENT,
-    PAYMENT
+    PAIEMENT,
+    DEPOT
 }

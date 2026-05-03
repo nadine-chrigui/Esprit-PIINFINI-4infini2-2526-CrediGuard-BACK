@@ -53,7 +53,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
     public List<Transaction> getByCompteId(Long compteId) {
         return transactionRepository
-                .findByCompteSource_IdCompteOrCompteDestination_IdCompte(compteId, compteId);
+                .findByCompteSourceIdCompteOrCompteDestinationIdCompte(compteId, compteId);
     }
     public Transaction createFromRequest(CreateTransactionRequest request) {
         Transaction tx = new Transaction();

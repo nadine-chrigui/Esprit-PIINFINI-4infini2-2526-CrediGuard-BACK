@@ -4,43 +4,50 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import tn.esprit.pi_back.entities.RegleRemboursement;
-import tn.esprit.pi_back.services.RegleRemboursementService;
+import tn.esprit.pi_back.dto.RegleRemboursementRequest;
+import tn.esprit.pi_back.dto.RegleRemboursementResponse;
+import tn.esprit.pi_back.services.FinanceService;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/regles-remboursement")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class RegleRemboursementController {
 
-    private final RegleRemboursementService regleRemboursementService;
+    private final FinanceService financeService;
 
-    @PostMapping
-    public ResponseEntity<RegleRemboursement> create(@Valid @RequestBody RegleRemboursement regle) {
-        return ResponseEntity.ok(regleRemboursementService.create(regle));
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<RegleRemboursement> update(@PathVariable Long id,
-            @Valid @RequestBody RegleRemboursement regle) {
-        return ResponseEntity.ok(regleRemboursementService.update(id, regle));
+    @GetMapping
+    public ResponseEntity<List<RegleRemboursementResponse>> getAll() {
+        return ResponseEntity.ok(financeService.getRegles());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<RegleRemboursement> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(regleRemboursementService.getById(id));
+    public ResponseEntity<RegleRemboursementResponse> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(financeService.getRegle(id));
     }
 
-    @GetMapping
-    public ResponseEntity<List<RegleRemboursement>> getAll() {
-        return ResponseEntity.ok(regleRemboursementService.getAll());
+    @GetMapping("/credit/{creditId}")
+    public ResponseEntity<List<RegleRemboursementResponse>> getByCredit(@PathVariable Long creditId) {
+        return ResponseEntity.ok(financeService.getReglesByCredit(creditId));
+    }
+
+    @PostMapping
+    public ResponseEntity<RegleRemboursementResponse> create(@Valid @RequestBody RegleRemboursementRequest request) {
+        return ResponseEntity.ok(financeService.createRegle(request));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<RegleRemboursementResponse> update(
+            @PathVariable Long id,
+            @Valid @RequestBody RegleRemboursementRequest request
+    ) {
+        return ResponseEntity.ok(financeService.updateRegle(id, request));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        regleRemboursementService.delete(id);
+        financeService.deleteRegle(id);
         return ResponseEntity.noContent().build();
     }
 }

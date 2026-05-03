@@ -123,10 +123,7 @@ public class UserServiceImpl implements UserService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
         if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
-            return userRepository.findByEmail("test@test.tn")
-                    .orElseThrow(() -> new SecurityException(
-                            "Unauthorized: no authenticated user. Create the test user first by calling POST /api/products once (or login)."
-                    ));
+            throw new SecurityException("Unauthorized: no authenticated user");
         }
 
         String email = auth.getName();

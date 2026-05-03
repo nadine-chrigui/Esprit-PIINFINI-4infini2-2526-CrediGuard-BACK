@@ -25,4 +25,6 @@ public interface OrderService {
     OrderResponse getAdminById(Long id);
 
     OrderResponse updateStatusAdmin(Long id, OrderStatusUpdateRequest req);
+
+    OrderResponse payOrder(Long id);
 }

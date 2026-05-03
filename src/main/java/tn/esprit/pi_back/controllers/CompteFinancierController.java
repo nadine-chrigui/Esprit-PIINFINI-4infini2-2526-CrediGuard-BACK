@@ -4,47 +4,51 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import tn.esprit.pi_back.entities.CompteFinancier;
-import tn.esprit.pi_back.services.CompteFinancierService;
+import tn.esprit.pi_back.dto.CompteFinancierRequest;
+import tn.esprit.pi_back.dto.CompteFinancierResponse;
+import tn.esprit.pi_back.services.FinanceService;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/comptes-financiers")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
+@CrossOrigin("*")
 public class CompteFinancierController {
 
-    private final CompteFinancierService compteFinancierService;
+    private final FinanceService financeService;
 
-    @PostMapping
-    public ResponseEntity<CompteFinancier> create(@Valid @RequestBody CompteFinancier compte) {
-        return ResponseEntity.ok(compteFinancierService.create(compte));
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<CompteFinancier> update(@PathVariable Long id, @Valid @RequestBody CompteFinancier compte) {
-        return ResponseEntity.ok(compteFinancierService.update(id, compte));
+    @GetMapping
+    public ResponseEntity<List<CompteFinancierResponse>> getAll() {
+        return ResponseEntity.ok(financeService.getComptes());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CompteFinancier> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(compteFinancierService.getById(id));
+    public ResponseEntity<CompteFinancierResponse> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(financeService.getCompte(id));
     }
 
-    @GetMapping
-    public ResponseEntity<List<CompteFinancier>> getAll() {
-        return ResponseEntity.ok(compteFinancierService.getAll());
+    @GetMapping("/utilisateur/{utilisateurId}")
+    public ResponseEntity<CompteFinancierResponse> getByUtilisateur(@PathVariable Long utilisateurId) {
+        return ResponseEntity.ok(financeService.getCompteByUtilisateurId(utilisateurId));
+    }
+
+    @PostMapping
+    public ResponseEntity<CompteFinancierResponse> create(@Valid @RequestBody CompteFinancierRequest request) {
+        return ResponseEntity.ok(financeService.createCompte(request));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<CompteFinancierResponse> update(
+            @PathVariable Long id,
+            @Valid @RequestBody CompteFinancierRequest request
+    ) {
+        return ResponseEntity.ok(financeService.updateCompte(id, request));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        compteFinancierService.delete(id);
+        financeService.deleteCompte(id);
         return ResponseEntity.noContent().build();
     }
-    @GetMapping("/utilisateur/{userId}")
-    public ResponseEntity<CompteFinancier> getByUserId(@PathVariable Long userId) {
-        return ResponseEntity.ok(compteFinancierService.getByUserId(userId));
-    }
-
 }
