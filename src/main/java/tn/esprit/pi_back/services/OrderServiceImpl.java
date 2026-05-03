@@ -1,6 +1,7 @@
 package tn.esprit.pi_back.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ import tn.esprit.pi_back.entities.User;
 import tn.esprit.pi_back.entities.enums.DiscountType;
 import tn.esprit.pi_back.entities.enums.OrderStatus;
 import tn.esprit.pi_back.entities.enums.SaleMode;
+import tn.esprit.pi_back.events.OrderPaidEvent;
 import tn.esprit.pi_back.mappers.OrderMapper;
 import tn.esprit.pi_back.repositories.OrderRepository;
 import tn.esprit.pi_back.repositories.ProductRepository;
@@ -32,6 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 @Transactional
 public class OrderServiceImpl implements OrderService {
@@ -45,6 +48,7 @@ public class OrderServiceImpl implements OrderService {
     private final UserRepository userRepository;
     private final OrderMapper orderMapper;
     private final PromotionService promotionService;
+    private final OrderRemboursementService orderRemboursementService;
 
     @Override
     public OrderResponse create(OrderCreateRequest req) {
@@ -256,6 +260,27 @@ public class OrderServiceImpl implements OrderService {
         }
 
         order.setStatus(req.status());
+        return orderMapper.toResponse(order);
+    }
+
+    @Override
+    @Transactional
+    public OrderResponse payOrder(Long id) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException(ORDER_NOT_FOUND + id));
+        
+        if (order.getStatus() == OrderStatus.PAID) {
+            return orderMapper.toResponse(order);
+        }
+
+        decreaseStockForOrder(order);
+        order.setStatus(OrderStatus.PAID);
+        order = orderRepository.save(order);
+
+        // Appel direct du service de remboursement (Contournement de l'événement pour test)
+        log.info("Appel direct de OrderRemboursementService pour l'order {}", order.getId());
+        orderRemboursementService.onOrderPaid(new OrderPaidEvent(this, order));
+        
         return orderMapper.toResponse(order);
     }
 

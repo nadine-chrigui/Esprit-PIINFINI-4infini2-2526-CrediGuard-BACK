@@ -190,4 +190,16 @@ public class UserServiceImpl implements UserService {
         existing.setEnabled(enabled);
         return userRepository.save(existing);
     }
+    @Override
+    public List<User> getPartners() {
+        return userRepository.findByUserType(UserType.PARTNER);
+    }
+
+    @Override
+    public List<User> getPartnersByType(tn.esprit.pi_back.entities.enums.PartnerType partnerType) {
+        return userRepository.findByUserType(UserType.PARTNER)
+                .stream()
+                .filter(u -> partnerType.equals(u.getPartnerType()))
+                .toList();
+    }
 }

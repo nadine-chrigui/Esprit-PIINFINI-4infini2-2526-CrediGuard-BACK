@@ -5,6 +5,5 @@ public enum UserType {
     BENEFICIARY,
     PARTNER,
     CLIENT,
-
+    INSURANCE
 }
-

@@ -51,10 +51,9 @@ public class ProfilCreditServiceImpl implements ProfilCreditService {
     @Override
     @Transactional(readOnly = true)
     public ProfilCreditResponseDTO getMyProfile(String email) {
-        ProfilCredit profil = profilCreditRepository.findByClientEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("ProfilCredit not found for user: " + email));
-
-        return profilCreditMapper.toResponse(profil);
+        return profilCreditRepository.findByClientEmail(email)
+                .map(profilCreditMapper::toResponse)
+                .orElse(null);
     }
 
     @Override
@@ -69,10 +68,9 @@ public class ProfilCreditServiceImpl implements ProfilCreditService {
     @Override
     @Transactional(readOnly = true)
     public ProfilCreditResponseDTO getByClientId(Long clientId) {
-        ProfilCredit profil = profilCreditRepository.findByClientId(clientId)
-                .orElseThrow(() -> new ResourceNotFoundException("ProfilCredit not found for client: " + clientId));
-
-        return profilCreditMapper.toResponse(profil);
+        return profilCreditRepository.findByClientId(clientId)
+                .map(profilCreditMapper::toResponse)
+                .orElse(null);
     }
 
     @Override

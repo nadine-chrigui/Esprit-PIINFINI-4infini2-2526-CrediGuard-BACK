@@ -8,6 +8,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import tn.esprit.pi_back.entities.enums.UserType;
+import tn.esprit.pi_back.entities.enums.PartnerType;
+import tn.esprit.pi_back.entities.enums.PartnerStatus;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -15,12 +17,9 @@ import java.util.List;
 
 @Entity
 @Table(name = "user")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@ToString
-@EqualsAndHashCode
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor
+@ToString @EqualsAndHashCode
 public class User implements UserDetails {
 
     @Id
@@ -47,10 +46,13 @@ public class User implements UserDetails {
     @Column(name = "user_type", nullable = false)
     private UserType userType;
 
-    @Pattern(
-            regexp = "^[24579][0-9]{7}$",
-            message = "phone must be a valid Tunisian number (8 digits)"
-    )
+    @Enumerated(EnumType.STRING)
+    private PartnerType partnerType;
+
+    @Enumerated(EnumType.STRING)
+    private PartnerStatus partnerStatus;
+
+    @Pattern(regexp = "^[24579][0-9]{7}$", message = "phone must be a valid Tunisian number (8 digits)")
     @Column(name = "phone")
     private String phone;
 
@@ -96,17 +98,9 @@ public class User implements UserDetails {
         return List.of(new SimpleGrantedAuthority("ROLE_" + userType.name()));
     }
 
-    @Override
-    public String getUsername() {
-        return email;
-    }
-
+    @Override public String getUsername() { return email; }
     @Override public boolean isAccountNonExpired() { return true; }
     @Override public boolean isAccountNonLocked() { return true; }
     @Override public boolean isCredentialsNonExpired() { return true; }
-
-    @Override
-    public boolean isEnabled() {
-        return Boolean.TRUE.equals(enabled);
-    }
+    @Override public boolean isEnabled() { return Boolean.TRUE.equals(enabled); }
 }

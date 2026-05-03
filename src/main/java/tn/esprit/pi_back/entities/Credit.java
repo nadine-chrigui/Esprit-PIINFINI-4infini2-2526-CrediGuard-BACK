@@ -1,5 +1,6 @@
 package tn.esprit.pi_back.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -16,6 +17,7 @@ import java.util.List;
 @AllArgsConstructor
 @ToString(exclude = {"client", "demandeCredit", "remboursements"})
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Credit {
 
     @Id
@@ -65,6 +67,10 @@ public class Credit {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "demande_credit_id", nullable = false, unique = true)
     private DemandeCredit demandeCredit;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_compte")
+    private CompteFinancier compte;
 
     @OneToMany(mappedBy = "credit", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Remboursement> remboursements;

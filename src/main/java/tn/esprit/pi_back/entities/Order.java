@@ -68,10 +68,15 @@ public class Order {
     @Column(unique = true)
     private String financeReference;
 
+    private String orderReference;
+
     /* ================= AUDIT ================= */
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    private String reference;
+    private LocalDateTime paidAt;
 
     @PrePersist
     void onCreate() {

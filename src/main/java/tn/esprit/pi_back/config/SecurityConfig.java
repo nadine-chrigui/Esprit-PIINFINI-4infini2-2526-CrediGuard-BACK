@@ -17,6 +17,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import tn.esprit.pi_back.security.JwtAuthFilter;
 
 import java.util.List;
@@ -36,34 +38,27 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
-
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
                         .requestMatchers("/api/projects/**").hasAnyRole("ADMIN", "PARTNER")
-
                         .requestMatchers("/api/cart/**").permitAll()
                         .requestMatchers("/api/products/**").permitAll()
                         .requestMatchers("/api/categories/**").permitAll()
-
                         .requestMatchers(HttpMethod.GET, "/products").permitAll()
                         .requestMatchers(HttpMethod.GET, "/products/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/products/seller/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/categories/**").permitAll()
-
                         .requestMatchers(HttpMethod.GET, "/api/profils-credit/me").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/profils-credit/me").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/profils-credit/me").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/demandes").authenticated()
                         .requestMatchers("/api/evaluations/**").authenticated()
                         .requestMatchers("/api/profils-credit/by-client").authenticated()
-
                         .anyRequest().permitAll()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-
         return http.build();
     }
 
@@ -74,10 +69,22 @@ public class SecurityConfig {
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
-
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                registry.addMapping("/**")
+                        .allowedOrigins("http://localhost:4200")
+                        .allowedMethods("*")
+                        .allowedHeaders("*");
+            }
+        };
     }
 
     @Bean
