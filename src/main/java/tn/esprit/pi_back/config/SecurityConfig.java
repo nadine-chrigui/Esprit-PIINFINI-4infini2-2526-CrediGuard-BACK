@@ -19,14 +19,16 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import tn.esprit.pi_back.security.JwtAuthFilter;
-
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
-
-    private final JwtAuthFilter jwtAuthFilter;
+    @Autowired
+    @Lazy
+    private JwtAuthFilter jwtAuthFilter;
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -34,15 +36,14 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/uploads/**").permitAll()
-                        .requestMatchers("/api/users/**").hasRole("ADMIN")
-                        .requestMatchers("/api/projects/**").hasAnyRole("ADMIN", "PARTNER")
-                        .requestMatchers("/api/cart/**").permitAll()
-                        .requestMatchers("/api/products/**").permitAll()
-                        .requestMatchers("/api/categories/**").permitAll()
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
+                        .requestMatchers("/users/**").hasRole("ADMIN")
+                        .requestMatchers("/projects/**").hasAnyRole("ADMIN", "PARTNER")
+                        .requestMatchers("/cart/**").permitAll()
+                        .requestMatchers("/products/**").permitAll()
+                        .requestMatchers("/categories/**").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/products/upload-image").permitAll()
                         .anyRequest().permitAll()
                 )
@@ -90,5 +91,4 @@ public class SecurityConfig {
         };
     }
 }
-
 

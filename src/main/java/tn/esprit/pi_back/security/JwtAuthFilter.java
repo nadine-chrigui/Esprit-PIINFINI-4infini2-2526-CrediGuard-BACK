@@ -1,10 +1,9 @@
 package tn.esprit.pi_back.security;
 
-
-
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,11 +14,17 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 @Component
-@RequiredArgsConstructor
+
 public class JwtAuthFilter extends OncePerRequestFilter {
 
-    private final JwtService jwtService;
-    private final CustomUserDetailsService userDetailsService;
+    // ✅ @Lazy pour éviter le cycle circulaire
+    @Autowired
+    @Lazy
+    private JwtService jwtService;
+
+    @Autowired
+    @Lazy
+    private CustomUserDetailsService userDetailsService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -56,11 +61,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request, response);
     }
+
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getServletPath();
         return path.startsWith("/auth/");
     }
-
 }
-

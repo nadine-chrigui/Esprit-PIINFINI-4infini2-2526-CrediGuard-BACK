@@ -85,6 +85,11 @@ public class User  implements UserDetails
     public boolean isEnabled() {
         return Boolean.TRUE.equals(enabled);
     }
+    @Override
+    public String getPassword() {
+        return this.password;
+    }
+
     private String resetToken;
 
     private LocalDateTime resetTokenExpiry;
