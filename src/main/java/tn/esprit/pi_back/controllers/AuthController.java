@@ -67,6 +67,7 @@ public class AuthController {
                     user.getId(),
                     user.getEmail(),
                     user.getUserType() != null ? user.getUserType().name() : null,
+                    user.getId(),
                     toAuthUserDto(user)
             );
         }
@@ -80,6 +81,7 @@ public class AuthController {
                 user.getId(),
                 user.getEmail(),
                 user.getUserType() != null ? user.getUserType().name() : null,
+                user.getId(),
                 toAuthUserDto(user)
         );
     }
@@ -117,7 +119,13 @@ public class AuthController {
         userRepository.save(user);
 
         String token = jwtService.generateToken(user.getEmail());
-        return new AuthResponse(token, toAuthUserDto(user));
+        return new AuthResponse(
+                token,
+                user.getId(),
+                user.getUserType() != null ? user.getUserType().name() : null,
+                user.getEmail(),
+                toAuthUserDto(user)
+        );
     }
 
     @PostMapping("/enable-2fa")

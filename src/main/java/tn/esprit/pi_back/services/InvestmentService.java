@@ -1,8 +1,7 @@
 package tn.esprit.pi_back.services;
 
-import tn.esprit.pi_back.entities.InvestmentOffer;
-import tn.esprit.pi_back.entities.PerformanceTracking;
 import tn.esprit.pi_back.dto.Investment.*;
+
 import java.util.List;
 
 public interface InvestmentService {
@@ -13,8 +12,4 @@ public interface InvestmentService {
     List<InvestmentResponse> getByProject(Long projectId);
     InvestmentResponse update(Long id, InvestmentUpdateRequest req);
     void delete(Long id);
-    List<InvestmentOffer> getOffersForUser(Long userId);
-    InvestmentOffer acceptOffer(Long offerId);
-    List<PerformanceTracking> getPerformance(Long offerId);
-    void updatePerformance(Long offerId, double newValue);
 }
