@@ -1,6 +1,5 @@
 package tn.esprit.pi_back.services;
 
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -70,10 +69,28 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public List<User> getAll(Boolean enabled, UserType userType) {
+        if (enabled != null && userType != null) {
+            return userRepository.findByEnabledAndUserTypeOrderByCreatedAtDesc(enabled, userType);
+        }
+
+        if (enabled != null) {
+            return userRepository.findByEnabledOrderByCreatedAtDesc(enabled);
+        }
+
+        if (userType != null) {
+            return userRepository.findByUserTypeOrderByCreatedAtDesc(userType);
+        }
+
+        return userRepository.findAll();
+    }
+
+    @Override
     public void delete(Long id) {
         User existing = getById(id);
         userRepository.delete(existing);
     }
+
     @Override
     public User getOrCreateCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -94,9 +111,9 @@ public class UserServiceImpl implements UserService {
                     User u = new User();
                     u.setEmail(email);
                     u.setFullName(fullName);
-                    u.setUserType(UserType.CLIENT);  // ✅ adapte au bon enum
+                    u.setUserType(UserType.CLIENT);
                     u.setPassword(passwordEncoder.encode("12345678"));
-                    u.setEnabled(true); // si tu as ce champ
+                    u.setEnabled(true);
                     return userRepository.save(u);
                 });
     }
@@ -105,56 +122,92 @@ public class UserServiceImpl implements UserService {
     public User getCurrentUserOrThrow() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        // ✅ DEV fallback READ-ONLY (aucun insert ici)
         if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
-            return userRepository.findByEmail("test@test.tn")
-                    .orElseThrow(() -> new SecurityException(
-                            "Unauthorized: no authenticated user. Create the test user first by calling POST /api/products once (or login)."
-                    ));
+            throw new SecurityException("Unauthorized: no authenticated user");
         }
 
         String email = auth.getName();
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new SecurityException("Unauthorized: user not found in DB"));
     }
+
     @Override
     public ProfileResponse getMyProfile() {
         User user = getCurrentUserOrThrow();
 
-        return new ProfileResponse(
-                user.getId(),
-                user.getFullName(),
-                user.getEmail(),
-                user.getPhone(),
-                user.getUserType(),
-                user.isEnabled()
-        );
+        ProfileResponse resp = new ProfileResponse();
+        resp.setId(user.getId());
+        resp.setFullName(user.getFullName());
+        resp.setEmail(user.getEmail());
+        resp.setPhone(user.getPhone());
+        resp.setUserType(user.getUserType());
+        resp.setEnabled(user.isEnabled());
+        resp.setSector(user.getSector());
+        resp.setActivityType(user.getActivityType());
+        resp.setRegion(user.getRegion());
+        return resp;
     }
 
     @Override
     public ProfileResponse updateMyProfile(UpdateProfileRequest request) {
-        User user = getCurrentUserOrThrow();
+        User user = getOrCreateCurrentUser();
 
-        userRepository.findByEmail(request.getEmail()).ifPresent(found -> {
-            if (!found.getId().equals(user.getId())) {
-                throw new RuntimeException("Email already exists: " + request.getEmail());
-            }
-        });
-
+        // On ne change pas l'email en mode test pour éviter de casser la session/le fallback
+        // user.setEmail(request.getEmail()); 
+        
         user.setFullName(request.getFullName());
-        user.setEmail(request.getEmail());
         user.setPhone(request.getPhone());
+        user.setSector(request.getSector());
+        user.setActivityType(request.getActivityType());
+        user.setRegion(request.getRegion());
+
+        // Sécurité : S'assurer que les champs vitaux ne sont pas nuls pour éviter les crashs de sauvegarde
+        if (user.getEnabled() == null) user.setEnabled(true);
+        if (user.getUserType() == null) user.setUserType(tn.esprit.pi_back.entities.enums.UserType.CLIENT);
+        if (user.getPassword() == null) user.setPassword("12345678");
 
         User saved = userRepository.save(user);
 
-        return new ProfileResponse(
-                saved.getId(),
-                saved.getFullName(),
-                saved.getEmail(),
-                saved.getPhone(),
-                saved.getUserType(),
-                saved.isEnabled()
-        );
+
+        ProfileResponse resp = new ProfileResponse();
+        resp.setId(saved.getId());
+        resp.setFullName(saved.getFullName());
+        resp.setEmail(saved.getEmail());
+        resp.setPhone(saved.getPhone());
+        resp.setUserType(saved.getUserType());
+        resp.setEnabled(saved.isEnabled());
+        resp.setSector(saved.getSector());
+        resp.setActivityType(saved.getActivityType());
+        resp.setRegion(saved.getRegion());
+        return resp;
     }
 
+    @Override
+    public User updateEnabled(Long id, Boolean enabled) {
+        if (enabled == null) {
+            throw new IllegalArgumentException("enabled is required");
+        }
+
+        User existing = getById(id);
+        User currentUser = getCurrentUserOrThrow();
+
+        if (Boolean.FALSE.equals(enabled) && currentUser.getId().equals(existing.getId())) {
+            throw new IllegalArgumentException("Admin cannot disable the currently authenticated account.");
+        }
+
+        existing.setEnabled(enabled);
+        return userRepository.save(existing);
+    }
+    @Override
+    public List<User> getPartners() {
+        return userRepository.findByUserType(UserType.PARTNER);
+    }
+
+    @Override
+    public List<User> getPartnersByType(tn.esprit.pi_back.entities.enums.PartnerType partnerType) {
+        return userRepository.findByUserType(UserType.PARTNER)
+                .stream()
+                .filter(u -> partnerType.equals(u.getPartnerType()))
+                .toList();
+    }
 }

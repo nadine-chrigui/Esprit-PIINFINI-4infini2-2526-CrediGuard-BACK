@@ -1,13 +1,13 @@
 package tn.esprit.pi_back.services;
 
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,21 +16,27 @@ import java.util.List;
 public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender mailSender;
-    @Value("${spring.mail.username}")
+
+    @Value("${spring.mail.username:}")
     private String fromAddress;
 
     @Override
     public void sendEmail(String to, String subject, String body) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, "UTF-8");
-            helper.setFrom(fromAddress);
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            if (fromAddress != null && !fromAddress.isBlank()) {
+                helper.setFrom(fromAddress);
+            }
+
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(buildHtmlTemplate(subject, body), true);
+
             mailSender.send(message);
         } catch (MessagingException ex) {
-            throw new RuntimeException("Unable to send HTML email", ex);
+            throw new RuntimeException("Failed to send email", ex);
         }
     }
 

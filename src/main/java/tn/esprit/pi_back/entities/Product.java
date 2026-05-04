@@ -106,8 +106,11 @@ public class Product {
 
     /* ================= AUDIT ================= */
 
+    @Column(length = 500)
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String imageUrl;
 
     @PrePersist
     protected void onCreate() {

@@ -1,0 +1,35 @@
+{
+  "model_name": "logistic_regression",
+  "model_type": "sklearn",
+  "training_date": "2026-04-25T14:28:45.889780",
+  "version": "1.0.0",
+  "performance": {
+    "accuracy": 1.0,
+    "f1_weighted": 1.0
+  },
+  "classes": [
+    "High Risk",
+    "Low Risk",
+    "Medium Risk"
+  ],
+  "all_models": {
+    "logistic_regression": {
+      "accuracy": 1.0,
+      "f1_weighted": 1.0
+    },
+    "random_forest": {
+      "accuracy": 0.9993333333333333,
+      "f1_weighted": 0.9993319448483147
+    },
+    "xgboost": {
+      "accuracy": 0.9993333333333333,
+      "f1_weighted": 0.9993319448483147
+    },
+    "neural_network": {
+      "accuracy": 0.996,
+      "f1_weighted": 0.9960018635535662
+    }
+  },
+  "task": "multi-class classification",
+  "description": "Customer risk segmentation: Low Risk, Medium Risk, High Risk"
+}

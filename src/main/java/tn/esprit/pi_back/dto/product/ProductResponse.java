@@ -9,7 +9,9 @@ import java.time.LocalDateTime;
 public record ProductResponse(
         Long id,
         Long sellerId,
+        String sellerName,
         Long categoryId,
+        String categoryName,
         String name,
         String description,
         Double basePrice,
@@ -29,5 +31,11 @@ public record ProductResponse(
         LocalDateTime expectedReleaseDate,
         boolean active,
         LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        LocalDateTime updatedAt,
+        String imageUrl,
+        Double originalPrice,
+        Double finalPrice,
+        Double discountAmount,
+        Boolean promotionApplied,
+        String promotionName
 ) {}

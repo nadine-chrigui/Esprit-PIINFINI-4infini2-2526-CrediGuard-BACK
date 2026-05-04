@@ -5,6 +5,7 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import tn.esprit.pi_back.entities.enums.CartItemSource;
 
 @Entity
 @Getter @Setter
@@ -12,6 +13,14 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(exclude = {"cart", "product"})
 public class CartItem {
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private CartItemSource source = CartItemSource.STANDARD;
+
+    private Long sourceOfferId;
+
+    private Double negotiatedUnitPrice;
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

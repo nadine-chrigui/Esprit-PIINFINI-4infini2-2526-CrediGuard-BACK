@@ -12,8 +12,8 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
-@EqualsAndHashCode
+@ToString(exclude = {"credit"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Echeance {
 
     @Id

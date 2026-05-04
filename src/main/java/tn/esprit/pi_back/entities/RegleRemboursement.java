@@ -1,5 +1,6 @@
 package tn.esprit.pi_back.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -11,6 +12,7 @@ import tn.esprit.pi_back.entities.enums.RegleType;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class RegleRemboursement {
 
     @Id
@@ -25,7 +27,22 @@ public class RegleRemboursement {
     @Positive(message = "Value must be positive")
     private Double valeur;
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     @ManyToOne
     @JoinColumn(name = "id_credit")
     private Credit credit;
+
+    @Transient
+    private Long creditId;
+
+    public void setCreditId(Long creditId) {
+        this.creditId = creditId;
+    }
+
+    @PostLoad
+    protected void onPostLoad() {
+        if (this.credit != null) {
+            this.creditId = this.credit.getId();
+        }
+    }
 }

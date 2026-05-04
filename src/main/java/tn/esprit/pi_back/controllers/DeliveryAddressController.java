@@ -10,7 +10,7 @@ import tn.esprit.pi_back.services.DeliveryAddressService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/delivery-addresses")
+@RequestMapping("/delivery-addresses")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class DeliveryAddressController {

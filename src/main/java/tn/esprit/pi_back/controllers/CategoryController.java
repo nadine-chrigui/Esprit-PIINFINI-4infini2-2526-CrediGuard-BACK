@@ -14,7 +14,7 @@ import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/categories")
+@RequestMapping("/categories")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class CategoryController {
@@ -24,7 +24,7 @@ public class CategoryController {
     @PostMapping
     public ResponseEntity<CategoryResponse> create(@Valid @RequestBody CategoryCreateRequest req) {
         CategoryResponse created = categoryService.create(req);
-        return ResponseEntity.created(URI.create("/api/categories/" + created.id())).body(created);
+        return ResponseEntity.created(URI.create("/categories/" + created.id())).body(created);
     }
 
     @GetMapping

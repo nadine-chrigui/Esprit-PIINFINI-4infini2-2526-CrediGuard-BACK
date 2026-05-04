@@ -27,6 +27,7 @@ public record ProductUpdateRequest(
 
         SaleMode saleType,
 
+        String imageUrl,
         @PositiveOrZero(message = "stockQuantity must be >= 0")
         Integer stockQuantity,
 

@@ -12,4 +12,5 @@ public class AuthResponse {
     private Long userId;
     private String userType;
     private String email;
+    private AuthUserDto user;
 }

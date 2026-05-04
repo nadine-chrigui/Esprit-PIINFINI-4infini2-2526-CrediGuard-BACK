@@ -14,7 +14,7 @@ target/
 .sts4-cache
 
 ### IntelliJ IDEA ###
-.idea
+.idea/
 *.iws
 *.iml
 *.ipr
@@ -31,3 +31,30 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### ENV / SECRETS ###
+.env
+.env.*
+*.env
+!.env.example
+
+### Python / ML / RAG ###
+.venv/
+venv/
+_venv/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+faiss_index/
+
+### Local models / generated files ###
+*.pkl
+*.joblib
+*.h5
+*.onnx
+
+### Logs ###
+*.log
+logs/

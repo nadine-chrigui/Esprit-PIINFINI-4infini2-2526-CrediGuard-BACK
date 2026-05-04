@@ -15,7 +15,7 @@ import jakarta.annotation.PostConstruct;
 
 
 @RestController
-@RequestMapping("/api/promo-codes")
+@RequestMapping("/promo-codes")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class PromoCodeController {

@@ -1,53 +1,66 @@
 package tn.esprit.pi_back.config;
 
-
-
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.*;
-import org.springframework.security.authentication.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.http.HttpMethod;
-import org.springframework.security.web.*;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import tn.esprit.pi_back.security.JwtAuthFilter;
 
 import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> {}) // ✅ IMPORTANT
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/stripe/webhook").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        .requestMatchers("/api/users/**").hasRole("ADMIN")
-                        // Public catalog: anyone can browse projects (investors, guests).
-                        .requestMatchers(HttpMethod.GET, "/api/projects", "/api/projects/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/projects").hasAnyRole("ADMIN", "PARTNER")
-                        .requestMatchers(HttpMethod.PUT, "/api/projects/**").hasAnyRole("ADMIN", "PARTNER")
-                        .requestMatchers(HttpMethod.DELETE, "/api/projects/**").hasAnyRole("ADMIN", "PARTNER")
-                        .requestMatchers("/api/cart/**").permitAll()
-                        .requestMatchers("/api/products/**").permitAll()
-                        .requestMatchers("/api/categories/**").permitAll()
+                        .requestMatchers("/auth/**", "/api/auth/**").permitAll()
+                        .requestMatchers("/uploads/**").permitAll()
 
-                        .anyRequest().permitAll()
+                        .requestMatchers(HttpMethod.GET, "/profils-credit/me", "/api/profils-credit/me").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/profils-credit/me", "/api/profils-credit/me").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/profils-credit/me", "/api/profils-credit/me").authenticated()
+                        .requestMatchers("/profils-credit/by-client", "/api/profils-credit/by-client").authenticated()
+                        .requestMatchers("/evaluations/**", "/api/evaluations/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/demandes", "/api/demandes").authenticated()
+                        .requestMatchers("/decisions/**", "/credits/**").authenticated()
+
+                        .requestMatchers("/users/me", "/users/me-full").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/users/me").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/users/clients", "/users/partners", "/users/partners/type/**").authenticated()
+                        .requestMatchers("/api/projects/**").hasAnyRole("ADMIN", "PARTNER")
+
+                        .requestMatchers("/insurance/**", "/vouchers/**", "/partnership/**", "/score-risque/**", "/notifications/**").permitAll()
+                        .requestMatchers("/contrats/**", "/claims/**", "/assureurs/**", "/offres/**").permitAll()
+                        .requestMatchers("/products/**", "/categories/**", "/cart/**").permitAll()
+                        .requestMatchers("/api/products/**", "/api/categories/**", "/api/cart/**").permitAll()
+                        .requestMatchers("/partner-products/**").permitAll()
+                        .requestMatchers("/profils-credit/**", "/sms/**").permitAll()
+                        .requestMatchers("/modalites/**").permitAll()
+
+                        .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -57,19 +70,17 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-
-        configuration.setAllowedOrigins(List.of("http://localhost:4200"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedOriginPatterns(List.of("*"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
+        configuration.setExposedHeaders(List.of("Authorization"));
         configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
-
         return source;
     }
-
-
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -80,17 +91,4 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
-    @Bean
-    public WebMvcConfigurer corsConfigurer() {
-        return new WebMvcConfigurer() {
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:4200")
-                        .allowedMethods("*")
-                        .allowedHeaders("*");
-            }
-        };
-    }
 }
-

@@ -6,9 +6,11 @@ import org.springframework.transaction.annotation.Transactional;
 import tn.esprit.pi_back.dto.delivery.*;
 import tn.esprit.pi_back.entities.Delivery;
 import tn.esprit.pi_back.entities.DeliveryAddress;
+import tn.esprit.pi_back.entities.DeliveryZone;
 import tn.esprit.pi_back.entities.Order;
 import tn.esprit.pi_back.entities.User;
 import tn.esprit.pi_back.entities.enums.DeliveryStatus;
+import tn.esprit.pi_back.entities.enums.DeliveryZoneRisk;
 import tn.esprit.pi_back.repositories.DeliveryAddressRepository;
 import tn.esprit.pi_back.repositories.DeliveryRepository;
 import tn.esprit.pi_back.repositories.OrderRepository;
@@ -24,6 +26,7 @@ public class DeliveryServiceImpl implements DeliveryService {
     private final DeliveryAddressRepository deliveryAddressRepository;
     private final OrderRepository orderRepository;
     private final UserService userService;
+    private final DeliveryZoneService deliveryZoneService;
 
     @Override
     public DeliveryResponse create(DeliveryCreateRequest req) {
@@ -53,6 +56,7 @@ public class DeliveryServiceImpl implements DeliveryService {
 
         d.setDeliverySlot(req.deliverySlot());
         d.setDeliveryFee(req.deliveryFee());
+        applyDefaultZone(d);
 
         d.setScheduledAt(req.scheduledAt());
         d.setTrackingNumber(req.trackingNumber());
@@ -72,23 +76,7 @@ public class DeliveryServiceImpl implements DeliveryService {
             throw new SecurityException("Forbidden: not your delivery.");
         }
 
-        if (req.addressId() != null) {
-            DeliveryAddress address = deliveryAddressRepository.findById(req.addressId())
-                    .orElseThrow(() -> new IllegalArgumentException("DeliveryAddress not found: " + req.addressId()));
-            d.setAddress(address);
-        }
-
-        if (req.deliveryType() != null) d.setDeliveryType(req.deliveryType());
-        if (req.deliveryStatus() != null) d.setDeliveryStatus(req.deliveryStatus());
-        if (req.deliverySlot() != null) d.setDeliverySlot(req.deliverySlot());
-        if (req.deliveryFee() != null) d.setDeliveryFee(req.deliveryFee());
-
-        if (req.scheduledAt() != null) d.setScheduledAt(req.scheduledAt());
-        if (req.shippedAt() != null) d.setShippedAt(req.shippedAt());
-        if (req.deliveredAt() != null) d.setDeliveredAt(req.deliveredAt());
-
-        if (req.trackingNumber() != null) d.setTrackingNumber(req.trackingNumber());
-        if (req.carrier() != null) d.setCarrier(req.carrier());
+        applyUpdate(d, req);
 
         return toResponse(d);
     }
@@ -130,6 +118,16 @@ public class DeliveryServiceImpl implements DeliveryService {
         d.setDeliveryStatus(DeliveryStatus.CANCELLED);
     }
 
+    @Override
+    public DeliveryResponse updateAdmin(Long id, DeliveryUpdateRequest req) {
+        Delivery d = deliveryRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Delivery not found: " + id));
+
+        applyUpdate(d, req);
+        Delivery saved = deliveryRepository.save(d);
+        return toResponse(saved);
+    }
+
     private DeliveryResponse toResponse(Delivery d) {
         DeliveryAddress a = d.getAddress();
         DeliveryAddressResponse addr = a == null ? null : new DeliveryAddressResponse(
@@ -137,8 +135,13 @@ public class DeliveryServiceImpl implements DeliveryService {
                 a.getFullName(),
                 a.getPhone(),
                 a.getCity(),
+                a.getGovernorate(),
+                a.getDelegation(),
+                a.getLocality(),
                 a.getAddressLine(),
-                a.getAdditionalInfo()
+                a.getAdditionalInfo(),
+                a.getLatitude(),
+                a.getLongitude()
         );
 
         return new DeliveryResponse(
@@ -153,9 +156,77 @@ public class DeliveryServiceImpl implements DeliveryService {
                 d.getDeliveredAt(),
                 d.getTrackingNumber(),
                 d.getCarrier(),
+                d.getDeliveryZone() != null ? d.getDeliveryZone().getId() : null,
+                d.getDeliveryZone() != null ? d.getDeliveryZone().getName() : null,
+                d.getZoneRiskLevel(),
+                d.getExtraDelayDays(),
+                d.getRequiresAdminApproval(),
                 addr,
                 d.getCreatedAt(),
                 d.getUpdatedAt()
         );
+    }
+    @Override
+    @Transactional(readOnly = true)
+    public List<DeliveryResponse> getAllDeliveries(DeliveryStatus status) {
+        List<Delivery> deliveries = status == null
+                ? deliveryRepository.findAll()
+                : deliveryRepository.findByDeliveryStatusOrderByCreatedAtDesc(status);
+
+        return deliveries.stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    private void applyUpdate(Delivery d, DeliveryUpdateRequest req) {
+        if (req.addressId() != null) {
+            DeliveryAddress address = deliveryAddressRepository.findById(req.addressId())
+                    .orElseThrow(() -> new IllegalArgumentException("DeliveryAddress not found: " + req.addressId()));
+            d.setAddress(address);
+            applyZoneRisk(d, address);
+        }
+
+        if (req.deliveryType() != null) d.setDeliveryType(req.deliveryType());
+        if (req.deliveryStatus() != null) d.setDeliveryStatus(req.deliveryStatus());
+        if (req.deliverySlot() != null) d.setDeliverySlot(req.deliverySlot());
+        if (req.deliveryFee() != null) d.setDeliveryFee(req.deliveryFee());
+
+        if (req.scheduledAt() != null) d.setScheduledAt(req.scheduledAt());
+        if (req.shippedAt() != null) d.setShippedAt(req.shippedAt());
+        if (req.deliveredAt() != null) d.setDeliveredAt(req.deliveredAt());
+
+        if (req.trackingNumber() != null) d.setTrackingNumber(req.trackingNumber());
+        if (req.carrier() != null) d.setCarrier(req.carrier());
+    }
+
+    private void applyZoneRisk(Delivery delivery, DeliveryAddress address) {
+        deliveryZoneService.findMatchingZone(address.getLatitude(), address.getLongitude())
+                .ifPresentOrElse(zone -> applyMatchedZone(delivery, zone), () -> applyDefaultZone(delivery));
+    }
+
+    private void applyMatchedZone(Delivery delivery, DeliveryZone zone) {
+        DeliveryZoneRisk risk = zone.getRiskLevel() != null ? zone.getRiskLevel() : DeliveryZoneRisk.NORMAL;
+
+        delivery.setDeliveryZone(zone);
+        delivery.setZoneRiskLevel(risk);
+        delivery.setExtraDelayDays(zone.getExtraDelayDays() != null ? zone.getExtraDelayDays() : 0);
+        delivery.setRequiresAdminApproval(Boolean.TRUE.equals(zone.getRequiresAdminApproval()));
+
+        double baseFee = delivery.getDeliveryFee() != null ? delivery.getDeliveryFee() : 0.0;
+        double feeAdjustment = zone.getFeeAdjustment() != null ? zone.getFeeAdjustment() : 0.0;
+        delivery.setDeliveryFee(baseFee + feeAdjustment);
+
+        if (risk == DeliveryZoneRisk.SENSITIVE
+                || risk == DeliveryZoneRisk.DANGEROUS
+                || Boolean.TRUE.equals(zone.getRequiresAdminApproval())) {
+            delivery.setDeliveryStatus(DeliveryStatus.PENDING_REVIEW);
+        }
+    }
+
+    private void applyDefaultZone(Delivery delivery) {
+        delivery.setDeliveryZone(null);
+        delivery.setZoneRiskLevel(DeliveryZoneRisk.NORMAL);
+        delivery.setExtraDelayDays(0);
+        delivery.setRequiresAdminApproval(false);
     }
 }
