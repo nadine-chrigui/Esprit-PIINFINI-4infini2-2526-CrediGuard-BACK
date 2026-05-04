@@ -7,8 +7,10 @@ import lombok.*;
 import java.time.LocalDate;
 
 @Entity
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(exclude = {"project"})
 public class PurchaseOption {
@@ -28,7 +30,16 @@ public class PurchaseOption {
     @Column(nullable = false)
     private Integer maxQuantity;
 
-    // commission est ici ✅
+    @NotNull(message = "soldQuantity is required")
+    @PositiveOrZero(message = "soldQuantity must be >= 0")
+    @Column(nullable = false)
+    private Integer soldQuantity = 0;
+
+    @NotNull(message = "remainingQuantity is required")
+    @PositiveOrZero(message = "remainingQuantity must be >= 0")
+    @Column(nullable = false)
+    private Integer remainingQuantity;
+
     @NotNull(message = "commissionRate is required")
     @DecimalMin(value = "0.0", inclusive = true, message = "commissionRate must be >= 0")
     @DecimalMax(value = "100.0", inclusive = true, message = "commissionRate must be <= 100")
@@ -48,6 +59,16 @@ public class PurchaseOption {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id", nullable = false)
     private CrowdfundingProject project;
+
+    @PrePersist
+    void onCreate() {
+        if (soldQuantity == null) {
+            soldQuantity = 0;
+        }
+        if (remainingQuantity == null) {
+            remainingQuantity = maxQuantity;
+        }
+    }
 
     public enum OptionStatus {
         ACTIVE, EXPIRED, SOLD_OUT, DISABLED

@@ -5,12 +5,13 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@ToString(exclude = {"investment", "transaction"})
+@ToString(exclude = {"investment"})
 public class ReturnPayment {
 
     @Id
@@ -35,17 +36,27 @@ public class ReturnPayment {
     @NotNull(message = "status is required")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private ReturnStatus status = ReturnStatus.PAID;
+    private ReturnStatus status = ReturnStatus.SCHEDULED;
 
+    @Column(nullable = false, length = 10)
+    private String currency = "usd";
+
+    @Column(unique = true)
+    private String stripePaymentIntentId;
+
+    private String googleCalendarEventId;
+
+    private String googleCalendarEventLink;
+
+    private LocalDateTime googleCalendarSyncedAt;
+
+    private LocalDateTime confirmedAt;
+
+    // Direct link to Investment (Transaction removed)
     @NotNull(message = "investment is required")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "investment_id", nullable = false)
     private Investment investment;
-
-    @NotNull(message = "transaction is required")
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "transaction_id", nullable = false, unique = true)
-    private Transaction transaction;
 
     public enum ReturnType {
         INTEREST, CAPITAL

@@ -11,4 +11,6 @@ public class LoginResponse {
     private String message;
     private String email;
     private String userType;
+    /** Database user id — required for APIs that expect ownerId / investorId in the body */
+    private Long userId;
 }

@@ -10,7 +10,7 @@ import java.time.LocalDate;
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@ToString(exclude = {"subscription", "order", "transaction"})
+@ToString(exclude = {"subscription", "order"})
 public class OptionRedemption {
 
     @Id
@@ -37,20 +37,15 @@ public class OptionRedemption {
     @Column(nullable = false)
     private Double commissionAmount;
 
-    // subscription (1) -> (0..1) redemption
+    // One subscription leads to one redemption
     @NotNull(message = "subscription is required")
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "subscription_id", nullable = false, unique = true)
     private OptionSubscription subscription;
 
-    // ✅ UNIQUEMENT Order et Transaction
+    // Redemption is linked to an Order (Transaction removed)
     @NotNull(message = "order is required")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
-
-    @NotNull(message = "transaction is required")
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "transaction_id", nullable = false, unique = true)
-    private Transaction transaction;
 }

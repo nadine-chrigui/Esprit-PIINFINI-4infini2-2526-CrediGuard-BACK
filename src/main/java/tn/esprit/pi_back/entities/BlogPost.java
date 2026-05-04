@@ -6,6 +6,8 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 
 @Entity
 @Getter @Setter
@@ -59,6 +61,11 @@ public class BlogPost {
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PostLike> likes;
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "blog_post_viewers", joinColumns = @JoinColumn(name = "post_id"))
+    @Column(name = "user_id")
+    private Set<Long> viewers = new HashSet<>();
 
     /* ================= Auto Dates ================= */
 

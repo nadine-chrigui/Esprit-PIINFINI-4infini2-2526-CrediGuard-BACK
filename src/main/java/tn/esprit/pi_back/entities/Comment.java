@@ -50,8 +50,9 @@ public class Comment {
     @JoinColumn(name = "parent_comment_id")
     private Comment parentComment;
 
-    // 🔹 Replies
-    @OneToMany(mappedBy = "parentComment", cascade = CascadeType.ALL)
+    // Replies: no cascade — avoids Hibernate removing child rows when the parent is managed/removed;
+    // each reply is persisted independently via CommentRepository.
+    @OneToMany(mappedBy = "parentComment")
     private List<Comment> replies;
 
     /* ================= Auto Dates ================= */

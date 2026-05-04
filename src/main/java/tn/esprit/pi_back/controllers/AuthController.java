@@ -68,7 +68,8 @@ import java.time.LocalDateTime;
                     null,
                     "OTP sent to your email",
                     user.getEmail(),
-                    user.getUserType().name()
+                    user.getUserType().name(),
+                    user.getId()
             );
         }
 
@@ -79,7 +80,8 @@ import java.time.LocalDateTime;
                 token,
                 "Login successful",
                 user.getEmail(),
-                user.getUserType().name() // 🔥 IMPORTANT
+                user.getUserType().name(),
+                user.getId()
         );
     }
 
@@ -119,7 +121,12 @@ import java.time.LocalDateTime;
         userRepository.save(user);
 
         String token = jwtService.generateToken(user.getEmail());
-        return new AuthResponse(token);
+        return new AuthResponse(
+                token,
+                user.getId(),
+                user.getUserType().name(),
+                user.getEmail()
+        );
     }
 
     @PostMapping("/enable-2fa")

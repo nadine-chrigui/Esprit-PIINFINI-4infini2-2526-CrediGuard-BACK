@@ -5,12 +5,13 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@ToString(exclude = {"investor", "project"})
+@ToString(exclude = {"investor", "project", "returnPayments"})
 public class Investment {
 
     @Id
@@ -47,15 +48,9 @@ public class Investment {
     @JoinColumn(name = "project_id", nullable = false)
     private CrowdfundingProject project;
 
-    // Lien vers vos flux financiers existants
-    // (une contribution peut générer plusieurs transactions : paiement, refund, etc.)
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "investment_transactions",
-            joinColumns = @JoinColumn(name = "investment_id"),
-            inverseJoinColumns = @JoinColumn(name = "transaction_id")
-    )
-    private java.util.List<Transaction> transactions;
+    // ReturnPayments linked directly to Investment (Transaction removed)
+    @OneToMany(mappedBy = "investment", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ReturnPayment> returnPayments;
 
     public enum InvestmentStatus {
         ACTIVE, COMPLETED, CANCELLED
